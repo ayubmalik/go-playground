@@ -1,8 +1,8 @@
 {
-  "name": "aws",
+  "name": "infrastructure",
   "version": "0.1.0",
   "bin": {
-    "aws": "bin/aws.js"
+    "infrastructure": "bin/infrastructure.js"
   },
   "scripts": {
     "build": "tsc",

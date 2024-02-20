@@ -70,7 +70,7 @@ func (c TdsWebClient) Origins2() error {
 
 	resp, err := client.R().
 		EnableTrace().
-		Get("https://httpbin.org/get")
+		Post("https://ride-api.bustickets.com/tickets/stop")
 
 	// Explore response object
 	fmt.Println("Response Info:")

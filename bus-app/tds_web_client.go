@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 
@@ -50,12 +50,16 @@ func (c TdsWebClient) Origins() error {
 	fmt.Println("key", c.key)
 	defer res.Body.Close()
 
-	content, err := io.ReadAll(res.Body)
+	var stopCities []StopCity
+
+	err = json.NewDecoder(res.Body).Decode(&stopCities)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(content))
+	for _, s := range stopCities {
+		fmt.Println("Got stop", s)
+	}
 	return err
 
 }

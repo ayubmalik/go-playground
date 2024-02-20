@@ -20,7 +20,7 @@ func main() {
 		key: os.Getenv("TDS_API_KEY"),
 	}
 
-	err = tc.Origins()
+	err = tc.Origins2()
 
 	log.Println(err)
 }

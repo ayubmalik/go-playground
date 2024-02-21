@@ -22,11 +22,5 @@ func main() {
 
 	err = tc.Origins2()
 
-	/**
-	 * Bal
-	 * sjsjs
-	 *
-	 */
-
 	log.Println(err)
 }

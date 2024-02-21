@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/go-resty/resty/v2"
-	"golang.org/x/net/http2"
 	"net/http"
 	"time"
+
+	"github.com/go-resty/resty/v2"
+	"golang.org/x/net/http2"
 )
 
 type TdsWebClient struct {
@@ -35,7 +36,8 @@ func (c TdsWebClient) Origins() error {
 			MaxReadFrameSize:   0,
 			DisableCompression: true,
 			AllowHTTP:          false,
-		}}
+		},
+	}
 
 	res, err := hc.Do(req)
 	if err != nil {
@@ -61,7 +63,6 @@ func (c TdsWebClient) Origins() error {
 		fmt.Println("Got stop", s)
 	}
 	return err
-
 }
 
 func (c TdsWebClient) Origins2() error {
@@ -70,6 +71,12 @@ func (c TdsWebClient) Origins2() error {
 
 	resp, err := client.R().
 		EnableTrace().
+		SetHeader("TDS-Api-Key", c.key).
+		SetHeader("content-type", "application/json").
+		SetHeader("accept", "application/json").
+		SetHeader("User-Agent", "curl/7.88.1").
+		SetHeader("tds-api-key", c.key).
+		SetBody(`{"carrierId":304,"type":"ORIGIN"}`).
 		Post("https://ride-api.bustickets.com/tickets/stop")
 
 	// Explore response object

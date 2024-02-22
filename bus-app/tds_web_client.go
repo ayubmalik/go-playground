@@ -8,14 +8,13 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"golang.org/x/net/http2"
 )
 
 type TdsWebClient struct {
+	resty   *resty.Client
 	url     string
 	key     string
 	carrier string
-	rc      resty.Client
 }
 
 func (c TdsWebClient) Origins() error {
@@ -25,6 +24,10 @@ func (c TdsWebClient) Origins() error {
 
 	buf := bytes.NewBuffer(body)
 	req, err := http.NewRequest("POST", "https://ride-api.bustickets.com/tickets/stop", buf)
+	if err != nil {
+		return err
+	}
+
 	req.Header.Add("content-type", "application/json")
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("User-Agent", "curl/7.88.1")
@@ -32,24 +35,14 @@ func (c TdsWebClient) Origins() error {
 
 	hc := &http.Client{
 		Timeout: 60 * time.Second,
-		Transport: &http2.Transport{
-			ReadIdleTimeout:    0,
-			MaxReadFrameSize:   0,
-			DisableCompression: true,
-			AllowHTTP:          false,
-		},
 	}
 
 	res, err := hc.Do(req)
-	if err != nil {
-		return err
-	}
-
-	res, err = hc.Do(req)
 	fmt.Println("STATUS", res.Status)
 	if err != nil {
 		return err
 	}
+
 	fmt.Println("key", c.key)
 	defer res.Body.Close()
 
@@ -67,10 +60,9 @@ func (c TdsWebClient) Origins() error {
 }
 
 func (c TdsWebClient) Origins2() error {
-	// Create a Resty Client
-	client := resty.New()
+	url := c.url + "/stop"
 
-	resp, err := client.R().
+	resp, err := c.resty.R().
 		EnableTrace().
 		SetHeader("TDS-Api-Key", c.key).
 		SetHeader("content-type", "application/json").
@@ -78,7 +70,7 @@ func (c TdsWebClient) Origins2() error {
 		SetHeader("User-Agent", "curl/7.88.1").
 		SetHeader("tds-api-key", c.key).
 		SetBody(`{"carrierId":304,"type":"ORIGIN"}`).
-		Post("https://ride-api.bustickets.com/tickets/stop")
+		Post(url)
 
 	// Explore response object
 	fmt.Println("Response Info:")

@@ -1,15 +1,15 @@
 package main
 
 type StopCity struct {
-	City      City
 	State     State
+	City      City
 	Latitude  float32
 	Longitude float32
 }
 
 type City struct {
-	CityId int
 	Name   string
+	CityId int
 }
 
 type State struct {

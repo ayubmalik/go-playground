@@ -15,6 +15,7 @@ type TdsWebClient struct {
 	url     string
 	key     string
 	carrier string
+	rc      resty.Client
 }
 
 func (c TdsWebClient) Origins() error {

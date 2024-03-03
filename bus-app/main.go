@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/joho/godotenv"
 )
 
@@ -14,17 +14,16 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	url := os.Getenv("TDS_API_URL")
-	log.Printf("URL = %s", url)
-
-	tc := TdsWebClient{
-		url:     os.Getenv("TDS_API_URL"),
-		key:     os.Getenv("TDS_API_KEY"),
-		carrier: "304",
-		resty:   resty.New(),
+	cid, err := strconv.Atoi(os.Getenv("TDS_CARRIER_ID"))
+	if err != nil {
+		log.Fatal("could not parse carrier carrierId")
+	}
+	tc := TdsClient{
+		url:       os.Getenv("TDS_API_URL"),
+		key:       os.Getenv("TDS_API_KEY"),
+		carrierId: cid,
 	}
 
-	err = tc.Origins()
-
-	log.Println(err)
+	origins, err := tc.Origins()
+	log.Println(origins, err)
 }

@@ -1,25 +1,39 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMama(t *testing.T) {
-	s := "hello"
+	left := "hello"
+	right := "world!"
 
-	assert.Equal(t, "hello world", s)
+	msg := left + " " + right
+	assert.Equal(t, "hello world!", msg)
 }
 
 func TestOrigins(t *testing.T) {
-	client := TdsClient{
+	var headers map[string][]string
+
+	jsonResponse := `[]`
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		headers = r.Header
+		w.Write([]byte(jsonResponse))
+	}))
+	defer server.Close()
+
+	tds := TdsRestApi{
+		client:    http.Client{},
 		key:       "some api key",
 		carrierId: 777,
-		url:       "some url",
+		url:       server.URL,
 	}
 
-	origins, err := client.Origins()
+	_, err := tds.Origins()
 	assert.Nil(t, err, "error was not nil")
-	assert.NotEmpty(t, origins)
+	assert.Equal(t, "some api key", headers["Tds-Api-Key"][0])
 }

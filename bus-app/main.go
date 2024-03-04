@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		log.Fatal("could not parse carrier carrierId")
 	}
-	tc := TdsClient{
+	tc := TdsRestApi{
 		url:       os.Getenv("TDS_API_URL"),
 		key:       os.Getenv("TDS_API_KEY"),
 		carrierId: cid,

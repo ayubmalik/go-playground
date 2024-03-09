@@ -14,7 +14,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	cid, err := strconv.Atoi(os.Getenv("TDS_CARRIER_ID"))
+	cid, err := strconv.Atoi(os.Getenv("TDS_API_CARRIER_ID"))
 	if err != nil {
 		log.Fatal("could not parse carrier carrierId")
 	}

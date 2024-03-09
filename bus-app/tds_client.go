@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -15,15 +15,22 @@ type TdsRestApi struct {
 }
 
 type StopsQuery struct {
-	Type      string
-	CarrierId int
+	Type      string `json:"type"`
+	CarrierId int    `json:"carrierId"`
 }
+
+const (
+	ContentType     = "content-type"
+	Accept          = "accept"
+	ApplicationJson = "application/json"
+	TdsApiKey       = "tds-api-key"
+)
 
 func (tds TdsRestApi) Origins() ([]StopCity, error) {
 	url := tds.url + "/stop"
 	qry := StopsQuery{
-		CarrierId: tds.carrierId,
 		Type:      "ORIGIN",
+		CarrierId: tds.carrierId,
 	}
 
 	buf, err := json.Marshal(qry)
@@ -36,13 +43,13 @@ func (tds TdsRestApi) Origins() ([]StopCity, error) {
 		return nil, err
 	}
 
-	req.Header.Add("content-type", "application/json")
-	req.Header.Add("accept", "application/json")
+	req.Header.Add(ContentType, ApplicationJson)
+	req.Header.Add(Accept, ApplicationJson)
 	req.Header.Add("tds-api-key", tds.key)
 
 	res, err := tds.client.Do(req)
-	fmt.Println("STATUS", res.Status)
 	if err != nil {
+		log.Println("STATUS", res.Status)
 		return nil, err
 	}
 

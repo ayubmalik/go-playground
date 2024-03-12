@@ -24,6 +24,10 @@ func main() {
 		carrierId: cid,
 	}
 
-	origins, err := tc.Origins()
-	log.Println(origins, err)
+	// origins, err := tc.Origins()
+	// log.Println(origins, err)
+	log.Println("DEST")
+	ny := StopCity{StopUuid: "83be15f2-118b-45d9-839c-c92e841f10fdstring"}
+	dests, err := tc.Destinations(ny)
+	log.Println(dests, err)
 }

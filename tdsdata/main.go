@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/samber/lo"
 	"net/http"
 	"os"
 	"strings"
@@ -14,26 +15,20 @@ type City struct {
 	Name   string `json:"name"`
 }
 
-type State struct {
-	Name         string `json:"name"`
-	Abbreviation string `json:"abbreviation"`
-	Country      string `json:"country"`
-}
-
 type Stop struct {
 	StopUuid    string `json:"stopUuid"`
 	StationName string `json:"stationName"`
+	StationCode string `json:"stationCode"`
 	City        City   `json:"city"`
-	State       State  `json:"state"`
 }
 
 type ODPair struct {
 	origin      Stop
 	destination Stop
+	key         string
 }
 
 func main() {
-
 	hc := http.Client{
 		Timeout: time.Second * 5,
 		Transport: &http.Transport{
@@ -52,20 +47,38 @@ func main() {
 	}
 
 	fmt.Println("count:", len(stops))
-	//var pairs []ODPair
-	for _, stop := range stops {
-		fmt.Printf("origin %s, %s\n", stop.StationName, stop.City.Name)
-		payload = fmt.Sprintf(`{"carrierId": 304 ,"type": "DESTINATION", "origin": {"stopUuid": "%s"}}`, stop.StopUuid)
-		fmt.Println(payload)
-		time.Sleep(100 * time.Millisecond)
-		dests, err := getStops(hc, apiKey, payload)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		fmt.Printf("dest count %d\n", len(dests))
+	var pairs []ODPair
+	for _, orig := range stops {
+		for _, dest := range stops {
+			var key string
+			if strings.Compare(orig.StationCode, dest.StationName) < 0 {
+				key = orig.StationCode + dest.StationCode
+			} else {
+				key = dest.StationCode + orig.StationCode
+			}
 
+			od := ODPair{
+				origin:      orig,
+				destination: dest,
+				key:         key,
+			}
+
+			pairs = append(pairs, od)
+		}
 	}
+
+	fmt.Println("pairs:", len(pairs))
+
+	pairs = lo.UniqBy(pairs, func(item ODPair) string {
+		return item.key
+	})
+
+	fmt.Println("pairs2:", len(pairs))
+
+	for _, pair := range pairs {
+		fmt.Println(pair.key)
+	}
+
 }
 
 func getStops(hc http.Client, apiKey, payload string) ([]Stop, error) {

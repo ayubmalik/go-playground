@@ -39,7 +39,7 @@ func main() {
 	}
 
 	apiKey := os.Getenv("API_KEY")
-	payload := `{"carrierId":304,"type":"ORIGIN"}`
+	payload := `{"carrierId":221,"type":"ORIGIN"}`
 	stops, err := getStops(hc, apiKey, payload)
 	if err != nil {
 		fmt.Println(err)
@@ -73,11 +73,11 @@ func main() {
 		return item.key
 	})
 
-	fmt.Println("pairs2:", len(pairs))
-
 	for _, pair := range pairs {
 		fmt.Println(pair.key)
 	}
+
+	fmt.Println("pairs2:", len(pairs))
 
 }
 
@@ -89,7 +89,7 @@ func getStops(hc http.Client, apiKey, payload string) ([]Stop, error) {
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Tds-Api-Key", apiKey)
-	req.Header.Add("TDS-Carrier-Code", "BTC")
+	req.Header.Add("TDS-Carrier-Code", "PPB")
 	resp, err := hc.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)

@@ -3,5 +3,5 @@ package calc
 type Engine struct{}
 
 func (e *Engine) Add(x, y float64) float64 {
-	return 0
+	return x + y
 }

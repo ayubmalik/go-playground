@@ -67,8 +67,6 @@ func main() {
 		}
 	}
 
-	fmt.Println("pairs:", len(pairs))
-
 	pairs = lo.UniqBy(pairs, func(item ODPair) string {
 		return item.key
 	})
@@ -99,9 +97,13 @@ func getStops(hc http.Client, apiKey, payload string) ([]Stop, error) {
 		return nil, fmt.Errorf("bad status code: %d, %s", resp.StatusCode, resp.Status)
 	}
 
-	defer resp.Body.Close()
 	var stops []Stop
 	decErr := json.NewDecoder(resp.Body).Decode(&stops)
+	err = resp.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("error closing body: %w", err)
+	}
+
 	if decErr != nil {
 		return nil, fmt.Errorf("error decoding response: %w", decErr)
 	}

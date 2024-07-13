@@ -37,14 +37,52 @@ func TestAdd(t *testing.T) {
 
 	// Arrange
 	e := calc.Engine{}
-	x, y := 2.5, 3.5
-	want := 6.0
 
-	// Act
-	got := e.Add(x, y)
+	t.Run("positive input", func(t *testing.T) {
+		x, y := 2.5, 3.5
+		want := 6.0
 
-	// Assert
-	if got != want {
-		t.Errorf("Add(%.2f, %.2f) incorrect, got: %.2f, want:%.2f; ", x, y, got, want)
+		got := e.Add(x, y)
+
+		if got != want {
+			t.Errorf("Add(%.2f, %.2f) incorrect, got: %.2f, want:%.2f; ", x, y, got, want)
+		}
+	})
+
+	t.Run("negative input", func(t *testing.T) {
+		x, y := -2.5, -3.5
+		want := -6.0
+
+		got := e.Add(x, y)
+
+		if got != want {
+			t.Errorf("Add(%.2f, %.2f) incorrect, got: %.2f, want:%.2f; ", x, y, got, want)
+		}
+	})
+}
+
+func BenchmarkEngine_Add(b *testing.B) {
+	e := calc.Engine{}
+	for i := 0; i < b.N; i++ {
+		e.Add(2, 3)
 	}
+}
+
+func BenchmarkEngine_Double(b *testing.B) {
+	e := calc.Engine{}
+
+	b.Run("double", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			e.Double(2.5)
+		}
+	})
+
+	b.Run("double2", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			e.Double(2.5)
+		}
+	})
+
 }

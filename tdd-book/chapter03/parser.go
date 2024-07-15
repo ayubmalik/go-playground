@@ -23,6 +23,6 @@ func (p *Parser) ProcessExpr(expr string) (*string, error) {
 	return p.engine.ProcessOp(op)
 }
 
-func (p *Parser) getOp(expr string) (*Op, interface{}) {
+func (p *Parser) getOp(expr string) (*Operation, interface{}) {
 	return nil, nil
 }

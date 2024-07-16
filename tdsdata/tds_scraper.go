@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/samber/lo"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -69,6 +70,7 @@ func (s ScheduleScraper) Scrape() ([]ODCandidate, error) {
 	})
 
 	pairs = lo.Shuffle(pairs)
+	pairs = pairs[0:1000]
 
 	odChan := make(chan ODPair)
 	go func() {
@@ -88,8 +90,12 @@ func (s ScheduleScraper) Scrape() ([]ODCandidate, error) {
 			for od := range odChan {
 				delay := 100 + rand.Intn(150)
 				time.Sleep(time.Duration(delay) * time.Millisecond)
-				log.Printf("routine %d, trying %s", id, od.key)
-				s.getSchedule(od)
+				//log.Printf("routine %d, trying %s", id, od.key)
+				_, sErr := s.getSchedule(od)
+				if sErr != nil {
+					log.Printf("error getting schedule for %s: %s", od.key, sErr)
+					continue
+				}
 			}
 		}(i)
 	}
@@ -134,22 +140,23 @@ func (s ScheduleScraper) getStops() ([]Stop, error) {
 }
 
 func (s ScheduleScraper) getSchedule(od ODPair) ([]ODCandidate, error) {
-	payload := `{
+	url := s.baseUrl + "/v2/schedule"
+	payload := fmt.Sprintf(`{
 			  "purchaseType": "SCHEDULE_BOOK",
 			  "origin": {
 				"stopUuid": "%s"
 			  },
 			  "destination": {
-				"stopUuid": "%d
+				"stopUuid": "%s"
 			  },
-			  "departDate": "2024-07-24,
+			  "departDate": "2024-07-24",
 			  "cityMode": false,
 			  "isReturn": false,
 			  "passengerCounts": {
 				"Adult": 1
 			  }
-			}`
-	url := s.baseUrl + "/stop"
+			}`, od.origin.StopUuid, od.destination.StopUuid)
+
 	req, err := http.NewRequest("POST", url, strings.NewReader(payload))
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)
@@ -167,17 +174,22 @@ func (s ScheduleScraper) getSchedule(od ODPair) ([]ODCandidate, error) {
 		return nil, fmt.Errorf("bad status code: %d, %s", resp.StatusCode, resp.Status)
 	}
 
-	var stops []Stop
-	decErr := json.NewDecoder(resp.Body).Decode(&stops)
-	err = resp.Body.Close()
+	//var stops []Stop
+	//decErr := json.NewDecoder(resp.Body).Decode(&stops)
+	//err = resp.Body.Close()
+	//if err != nil {
+	//	return nil, fmt.Errorf("error closing body: %w", err)
+	//}
+	//
+	//if decErr != nil {
+	//	return nil, fmt.Errorf("error decoding response: %w", decErr)
+	//}
+	response, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error closing body: %w", err)
+		return nil, fmt.Errorf("error reading response: %w", err)
 	}
-
-	if decErr != nil {
-		return nil, fmt.Errorf("error decoding response: %w", decErr)
-	}
-	return stops, nil
+	log.Println(string(response))
+	return nil, nil
 }
 
 type ODCandidate struct {

@@ -1,5 +1,7 @@
 package lru
 
+import "fmt"
+
 func New(max int) Cache {
 	return &LRU{entries: make(map[string]string), max: max}
 }
@@ -33,4 +35,29 @@ func (l *LRU) Set(key, val string) {
 
 func (l *LRU) Len() int {
 	return len(l.entries)
+}
+
+func MoveToFront(needle string, haystack []string) []string {
+	if len(haystack) != 0 && haystack[0] == needle {
+		return haystack
+	}
+	prev := needle
+	for i, elem := range haystack {
+		fmt.Println(i, prev, haystack)
+		switch {
+		case i == 0:
+			haystack[0] = needle
+			prev = elem
+		case elem == needle:
+			fmt.Println("cya")
+			haystack[i] = prev
+			return haystack
+		default:
+			haystack[i] = prev
+			prev = elem
+		}
+	}
+
+	fmt.Printf("XYZ prev %s, haystack: %q\n", prev, haystack)
+	return append(haystack, prev)
 }

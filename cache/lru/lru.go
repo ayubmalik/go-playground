@@ -1,7 +1,5 @@
 package lru
 
-import "fmt"
-
 func New(max int) Cache {
 	return &LRU{entries: make(map[string]string), max: max}
 }
@@ -21,12 +19,14 @@ type LRU struct {
 }
 
 func (l *LRU) Get(key string) string {
-	return l.entries[key]
+	val := l.entries[key]
+	l.moveToFront(key)
+	return val
 }
 
 func (l *LRU) Set(key, val string) {
-	if len(l.entries) == l.max {
-		delete(l.entries, l.order[0])
+	if len(l.entries) == l.max { // TODO: bug
+		delete(l.entries, l.order[l.max])
 		l.order = l.order[1:]
 	}
 	l.entries[key] = val
@@ -37,27 +37,25 @@ func (l *LRU) Len() int {
 	return len(l.entries)
 }
 
-func MoveToFront(needle string, haystack []string) []string {
-	if len(haystack) != 0 && haystack[0] == needle {
-		return haystack
+func (l *LRU) moveToFront(key string) {
+	if l.order[0] == key {
+		return
 	}
-	prev := needle
-	for i, elem := range haystack {
-		fmt.Println(i, prev, haystack)
+
+	prev := key
+	for i, elem := range l.order {
 		switch {
 		case i == 0:
-			haystack[0] = needle
+			l.order[0] = key
 			prev = elem
-		case elem == needle:
-			fmt.Println("cya")
-			haystack[i] = prev
-			return haystack
+		case elem == key:
+			l.order[i] = prev
+			return
 		default:
-			haystack[i] = prev
+			l.order[i] = prev
 			prev = elem
 		}
 	}
 
-	fmt.Printf("XYZ prev %s, haystack: %q\n", prev, haystack)
-	return append(haystack, prev)
+	// should not be here
 }

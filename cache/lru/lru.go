@@ -1,7 +1,7 @@
 package lru
 
 func New(max int) Cache {
-	return &LRU{entries: make(map[string]string), max: max}
+	return &LRU{entries: make(map[string]string, max), max: max}
 }
 
 type Cache interface {
@@ -13,19 +13,19 @@ type Cache interface {
 }
 
 type LRU struct {
-	max     int
 	entries map[string]string
 	order   []string
+	max     int
 }
 
 func (l *LRU) Get(key string) string {
 	val := l.entries[key]
-	l.moveToFront(key)
+	l.move(key)
 	return val
 }
 
 func (l *LRU) Set(key, val string) {
-	if len(l.entries) == l.max { // TODO: bug
+	if len(l.entries) == l.max {
 		delete(l.entries, l.order[0])
 		l.order = l.order[1:]
 	}
@@ -37,16 +37,18 @@ func (l *LRU) Len() int {
 	return len(l.entries)
 }
 
-func (l *LRU) moveToFront(key string) {
-	if l.order[0] == key {
+func (l *LRU) move(key string) {
+	last := len(l.order) - 1
+	if l.order[last] == key {
 		return
 	}
 
 	prev := key
-	for i, elem := range l.order {
+	for i := last; i >= 0; i-- {
+		elem := l.order[i]
 		switch {
-		case i == 0:
-			l.order[0] = key
+		case i == last:
+			l.order[last] = key
 			prev = elem
 		case elem == key:
 			l.order[i] = prev
@@ -56,6 +58,5 @@ func (l *LRU) moveToFront(key string) {
 			prev = elem
 		}
 	}
-
 	// should not be here
 }

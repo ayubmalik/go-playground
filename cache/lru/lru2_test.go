@@ -1,15 +1,14 @@
 package lru_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/ayubmalik/cache/lru"
 )
 
-func TestLRU1(t *testing.T) {
+func TestLRU2(t *testing.T) {
 	t.Run("set and get", func(t *testing.T) {
-		cache := lru.New(2)
+		cache := lru.New2(2)
 
 		cache.Set("foo", "bar")
 
@@ -20,7 +19,7 @@ func TestLRU1(t *testing.T) {
 	})
 
 	t.Run("len with less than max entries", func(t *testing.T) {
-		cache := lru.New(2)
+		cache := lru.New2(2)
 
 		cache.Set("foo1", "bar1")
 
@@ -30,8 +29,8 @@ func TestLRU1(t *testing.T) {
 		}
 	})
 
-	t.Run("len does not exceed max ", func(t *testing.T) {
-		cache := lru.New(2)
+	t.Run("len does not exceed max", func(t *testing.T) {
+		cache := lru.New2(2)
 
 		cache.Set("foo1", "bar1")
 		cache.Set("foo2", "bar2")
@@ -53,8 +52,8 @@ func TestLRU1(t *testing.T) {
 		}
 	})
 
-	t.Run("evicts least recently - no Get", func(t *testing.T) {
-		cache := lru.New(4)
+	t.Run("evict least recently used no Get", func(t *testing.T) {
+		cache := lru.New2(4)
 
 		cache.Set("foo1", "bar1")
 		cache.Set("foo2", "bar2")
@@ -71,8 +70,8 @@ func TestLRU1(t *testing.T) {
 		}
 	})
 
-	t.Run("evicts least recently with Get", func(t *testing.T) {
-		cache := lru.New(4)
+	t.Run("evict least recently used with Get", func(t *testing.T) {
+		cache := lru.New2(4)
 
 		cache.Set("foo1", "bar1")
 		cache.Set("foo2", "bar2")
@@ -115,25 +114,4 @@ func TestLRU1(t *testing.T) {
 			t.Errorf("no evicted - got %q, want %q", got, want)
 		}
 	})
-}
-
-func TestSpike(t *testing.T) {
-	data := []string{"foo", "bar", "cheese", "tea", "banana"}
-
-	bubble := func(key string, items []string) {
-		var i int
-		for i = 0; i < len(items); i++ {
-			if items[i] == key {
-				break
-			}
-		}
-		for j := i; j > 0; j-- {
-			data[j-1], data[j] = data[j], data[j-1]
-		}
-		fmt.Printf("data: %q\n", data)
-	}
-
-	bubble("cheese", data)
-	bubble("foo", data)
-	bubble("banana", data)
 }

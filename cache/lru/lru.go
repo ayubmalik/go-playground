@@ -26,7 +26,7 @@ func (l *LRU) Get(key string) string {
 
 func (l *LRU) Set(key, val string) {
 	if len(l.entries) == l.max { // TODO: bug
-		delete(l.entries, l.order[l.max])
+		delete(l.entries, l.order[0])
 		l.order = l.order[1:]
 	}
 	l.entries[key] = val

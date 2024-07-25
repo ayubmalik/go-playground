@@ -30,21 +30,21 @@ func TestLRU(t *testing.T) {
 		}
 	})
 
-	t.Run("len does not exceed capacity", func(t *testing.T) {
+	t.Run("len does not exceed max ", func(t *testing.T) {
 		cache := lru.New(2)
 
 		cache.Set("foo1", "bar1")
 		cache.Set("foo2", "bar2")
 		cache.Set("foo3", "bar3")
 
-		got := cache.Get("foo3")
-		if got != "bar3" {
-			t.Errorf("got %q, want %q", got, "bar3")
-		}
-
 		gotLen := cache.Len()
 		if gotLen != 2 {
 			t.Errorf("got len %d, want %d", gotLen, 2)
+		}
+
+		got := cache.Get("foo3")
+		if got != "bar3" {
+			t.Errorf("got %q, want %q", got, "bar3")
 		}
 
 		got2 := cache.Get("foo1")

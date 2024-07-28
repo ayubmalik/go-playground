@@ -1,12 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
+	_ "github.com/lib/pq"
 )
 
 type Postcode string
@@ -30,22 +33,40 @@ type CoordsResult struct {
 }
 
 type Repo struct {
+	db *sql.DB
 }
 
 func (r Repo) Find(p Postcode) *Coords {
-	return nil
+	qry := "SELECT lat, lng FROM postcode_geo WHERE postcode = $1"
+	var coords Coords
+	row := r.db.QueryRow(qry, p)
+	err := row.Scan(&coords.Lat, &coords.Lng)
+	if err != nil {
+		return nil
+	}
+	return &coords
 }
 
 func main() {
-	repo := Repo{}
-	if err := run(repo); err != nil {
+	if err := run(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(finder CoordsFinder) error {
+func run() error {
+	db, err := sql.Open("postgres", "postgres://postgres:password@localhost:5432/postgres?sslmode=disable")
+	if err != nil {
+		return err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return err
+	}
+	repo := Repo{db: db}
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /latlng/{postcode}", handleGetLatLng(finder))
+	mux.HandleFunc("GET /latlng/{postcode}", handleGetLatLng(repo))
 	return http.ListenAndServe(":8080", mux)
 }
 
@@ -58,8 +79,10 @@ func handleGetLatLng(finder CoordsFinder) func(w http.ResponseWriter, r *http.Re
 		}
 		postcode := Postcode(param)
 		coords := finder.Find(postcode.Normalise())
+		fmt.Printf("coords: %+v\n", coords)
 		if coords == nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")

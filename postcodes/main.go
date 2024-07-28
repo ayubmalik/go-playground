@@ -1,15 +1,14 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
-
-	_ "github.com/lib/pq"
 )
 
 type Postcode string
@@ -33,13 +32,13 @@ type CoordsResult struct {
 }
 
 type Repo struct {
-	db *sql.DB
+	db *pgx.Conn
 }
 
 func (r Repo) Find(p Postcode) *Coords {
 	qry := "SELECT lat, lng FROM postcode_geo WHERE postcode = $1"
 	var coords Coords
-	row := r.db.QueryRow(qry, p)
+	row := r.db.QueryRow(context.Background(), qry, p)
 	err := row.Scan(&coords.Lat, &coords.Lng)
 	if err != nil {
 		return nil
@@ -54,16 +53,19 @@ func main() {
 }
 
 func run() error {
-	db, err := sql.Open("postgres", "postgres://postgres:password@localhost:5432/postgres?sslmode=disable")
+	ctx := context.Background()
+	url := "postgres://postgres:password@localhost:5432/postgres?sslmode=disable"
+	conn, err := pgx.Connect(ctx, url)
 	if err != nil {
 		return err
 	}
+	defer conn.Close(ctx)
 
-	err = db.Ping()
+	err = conn.Ping(ctx)
 	if err != nil {
 		return err
 	}
-	repo := Repo{db: db}
+	repo := Repo{db: conn}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /latlng/{postcode}", handleGetLatLng(repo))

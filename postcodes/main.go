@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type Postcode string
@@ -22,7 +23,7 @@ type Coords struct {
 	Lng float64 `json:"lng"`
 }
 
-type CoordsFinder interface {
+type Finder interface {
 	Find(p Postcode) *Coords
 }
 
@@ -72,7 +73,7 @@ func run() error {
 	return http.ListenAndServe(":8080", mux)
 }
 
-func handleGetLatLng(finder CoordsFinder) func(w http.ResponseWriter, r *http.Request) {
+func handleGetLatLng(finder Finder) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		param, err := url.QueryUnescape(r.PathValue("postcode"))
 		if err != nil {

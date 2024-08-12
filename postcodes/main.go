@@ -23,10 +23,6 @@ type Coords struct {
 	Lng float64 `json:"lng"`
 }
 
-type Finder interface {
-	Find(p Postcode) *Coords
-}
-
 type CoordsResult struct {
 	Postcode Postcode `json:"postcode"`
 	Coords   Coords   `json:"coords"`
@@ -71,6 +67,10 @@ func run() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /latlng/{postcode}", handleGetLatLng(repo))
 	return http.ListenAndServe(":8080", mux)
+}
+
+type Finder interface {
+	Find(p Postcode) *Coords
 }
 
 func handleGetLatLng(finder Finder) func(w http.ResponseWriter, r *http.Request) {

@@ -21,6 +21,19 @@ func main() {
 }
 
 func WriteKeyToFile(key *Key) error {
+	write := func(name string, block *pem.Block) error {
+		f, err := os.Create(name)
+		if err != nil {
+			return fmt.Errorf("failed to create file: %w", err)
+		}
+		defer f.Close()
+		_, err = f.Write(pem.EncodeToMemory(block))
+		if err != nil {
+			return fmt.Errorf("failed to write to file: %w", err)
+		}
+		return nil
+	}
+
 	buf, err := x509.MarshalPKCS8PrivateKey(key.prv)
 	if err != nil {
 		return fmt.Errorf("failed to marshal private key: %w", err)
@@ -31,15 +44,22 @@ func WriteKeyToFile(key *Key) error {
 		Bytes: buf,
 	}
 
-	f, err := os.Create("private.ed25519.pem")
+	err = write("private.ed25519.pem", block)
 	if err != nil {
-		return fmt.Errorf("failed to create file: %w", err)
+		return fmt.Errorf("failed to write private key: %w", err)
 	}
-	defer f.Close()
 
-	_, err = f.Write(pem.EncodeToMemory(block))
+	buf, err = x509.MarshalPKIXPublicKey(key.pub)
 	if err != nil {
-		return fmt.Errorf("failed to write to file: %w", err)
+		return fmt.Errorf("failed to marshal public key: %w", err)
+	}
+	block = &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: buf,
+	}
+	err = write("public.ed25519.pem", block)
+	if err != nil {
+		return fmt.Errorf("failed to write public key: %w", err)
 	}
 	return nil
 }

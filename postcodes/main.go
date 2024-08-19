@@ -56,6 +56,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
+
 	defer conn.Close(ctx)
 
 	err = conn.Ping(ctx)
@@ -96,6 +97,32 @@ func handleGetLatLng(finder Finder) func(w http.ResponseWriter, r *http.Request)
 		}
 
 		fmt.Printf("result: %+v\n", result)
+		err = json.NewEncoder(w).Encode(result)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func handlePostLatLng(finder Finder) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		postcode := r.PathValue("")
+		var coords Coords
+		err := json.NewDecoder(r.Body).Decode(&coords)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		postcode := finder.Find(postcode.Normalise())
+		if postcode == nil {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		result := CoordsResult{
+			Postcode: postcode,
+			Coords:   coords,
+		}
 		err = json.NewEncoder(w).Encode(result)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

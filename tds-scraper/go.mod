@@ -1,4 +1,4 @@
-module tdsdata
+module tds-scraper
 
 go 1.22
 

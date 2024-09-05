@@ -9,7 +9,7 @@ import (
 
 func main() {
 	hc := http.Client{
-		Timeout: time.Second * 5,
+		Timeout: time.Second * 10,
 		Transport: &http.Transport{
 			MaxIdleConns:        8,
 			MaxIdleConnsPerHost: 8,
@@ -18,6 +18,10 @@ func main() {
 	}
 
 	apiKey := os.Getenv("API_KEY")
+	if apiKey == "" {
+		fmt.Println("API_KEY environment variable is required")
+		return
+	}
 
 	scraper := ScheduleScraper{
 		client:  hc,
@@ -27,6 +31,7 @@ func main() {
 
 	schedules, err := scraper.Scrape()
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 

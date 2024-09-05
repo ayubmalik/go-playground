@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
 	"io"
 	"log"
 	"math/rand"
@@ -12,11 +11,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/samber/lo"
 )
 
 type City struct {
-	CityId int    `json:"cityId"`
 	Name   string `json:"name"`
+	CityId int    `json:"cityId"`
 }
 
 type Stop struct {
@@ -29,7 +30,10 @@ type Stop struct {
 type ODPair struct {
 	origin      Stop
 	destination Stop
-	key         string
+}
+
+func (od ODPair) String() string {
+	return fmt.Sprintf("%s -> %s", od.origin.StationName, od.destination.StationName)
 }
 
 type ScheduleScraper struct {
@@ -47,27 +51,18 @@ func (s ScheduleScraper) Scrape() ([]ODCandidate, error) {
 	var pairs []ODPair
 	for _, orig := range stops {
 		for _, dest := range stops {
-			var key string
-			if strings.Compare(orig.StationCode, dest.StationCode) < 0 {
-				key = orig.StationCode + dest.StationCode
-			} else {
-				key = dest.StationCode + orig.StationCode
+			if orig.StopUuid == dest.StopUuid {
+				continue
 			}
 
 			od := ODPair{
 				origin:      orig,
 				destination: dest,
-				key:         key,
 			}
 
 			pairs = append(pairs, od)
 		}
 	}
-
-	// filter so A->B === B->A
-	pairs = lo.UniqBy(pairs, func(item ODPair) string {
-		return item.key
-	})
 
 	pairs = lo.Shuffle(pairs)
 	pairs = pairs[0:1000]
@@ -80,7 +75,7 @@ func (s ScheduleScraper) Scrape() ([]ODCandidate, error) {
 		}
 	}()
 
-	n := runtime.GOMAXPROCS(0)
+	n := runtime.GOMAXPROCS(1)
 	wg := sync.WaitGroup{}
 	wg.Add(n)
 	start := time.Now()
@@ -88,12 +83,11 @@ func (s ScheduleScraper) Scrape() ([]ODCandidate, error) {
 		go func(id int) {
 			defer wg.Done()
 			for od := range odChan {
-				delay := 100 + rand.Intn(150)
+				delay := 100 + rand.Intn(100)
 				time.Sleep(time.Duration(delay) * time.Millisecond)
-				//log.Printf("routine %d, trying %s", id, od.key)
 				_, sErr := s.getSchedule(od)
 				if sErr != nil {
-					log.Printf("error getting schedule for %s: %s", od.key, sErr)
+					log.Printf("error getting schedule for %s", od)
 					continue
 				}
 			}
@@ -142,20 +136,20 @@ func (s ScheduleScraper) getStops() ([]Stop, error) {
 func (s ScheduleScraper) getSchedule(od ODPair) ([]ODCandidate, error) {
 	url := s.baseUrl + "/v2/schedule"
 	payload := fmt.Sprintf(`{
-			  "purchaseType": "SCHEDULE_BOOK",
-			  "origin": {
-				"stopUuid": "%s"
-			  },
-			  "destination": {
-				"stopUuid": "%s"
-			  },
-			  "departDate": "2024-07-24",
-			  "cityMode": false,
-			  "isReturn": false,
-			  "passengerCounts": {
-				"Adult": 1
-			  }
-			}`, od.origin.StopUuid, od.destination.StopUuid)
+		"purchaseType": "SCHEDULE_BOOK",
+		"origin": {
+		"stopUuid": "%s"
+		},
+		"destination": {
+		"stopUuid": "%s"
+		},
+		"departDate": "2024-09-09",
+		"cityMode": false,
+		"isReturn": false,
+		"passengerCounts": {
+		"Adult": 1
+		}
+		}`, od.origin.StopUuid, od.destination.StopUuid)
 
 	req, err := http.NewRequest("POST", url, strings.NewReader(payload))
 	if err != nil {
@@ -193,6 +187,6 @@ func (s ScheduleScraper) getSchedule(od ODPair) ([]ODCandidate, error) {
 }
 
 type ODCandidate struct {
-	OD         ODPair
 	ScheduleID string
+	OD         ODPair
 }

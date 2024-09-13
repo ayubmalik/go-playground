@@ -5,6 +5,11 @@ import (
 	"os"
 )
 
+type Stop struct {
+	Origin      string
+	Destination string
+}
+
 func main() {
 	ARUBA := "Hello World!"
 
@@ -15,6 +20,13 @@ func main() {
 	}
 	Good()
 
+	n := 1
+	stop := Stop{
+		Origin:      "Manchester",
+		Destination: "Liverpool",
+	}
+
+	fmt.Println("Stop", stop, n)
 	os.Exit(0)
 }
 

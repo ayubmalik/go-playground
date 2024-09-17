@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/nats-io/nats.go"
 )
 
 const (
@@ -29,12 +30,12 @@ type Stop struct {
 }
 
 type ODPair struct {
-	origin      Stop
-	destination Stop
+	Origin      Stop
+	Destination Stop
 }
 
 func (od ODPair) String() string {
-	return fmt.Sprintf("%s -> %s", od.origin.StationName, od.destination.StationName)
+	return fmt.Sprintf("%s -> %s", od.Origin.StationName, od.Destination.StationName)
 }
 
 type StopQuery struct {
@@ -81,16 +82,40 @@ func main() {
 				continue
 			}
 
-			od := ODPair{origin: o, destination: d}
+			od := ODPair{Origin: o, Destination: d}
 			pairs = append(pairs, od)
 		}
 	}
 
-	for _, p := range pairs {
-		fmt.Printf("%-45s -> %s\n", p.origin.StationName, p.destination.StationName)
-	}
+	fmt.Printf("count pairs: %d\n", len(pairs))
 	took := time.Since(start)
-	log.Printf("took %s", took)
+	fmt.Printf("took %s\n", took)
+
+	conn, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		fmt.Printf("nats conn err: %s\nDef url %s\n", err, nats.DefaultURL)
+		os.Exit(1)
+	}
+
+	for _, p := range pairs {
+		data, err := json.Marshal(p)
+		if err != nil {
+			fmt.Printf("could not marshal pair: %v", err)
+			os.Exit(1)
+		}
+
+		msg := &nats.Msg{
+			Subject: "tds.q.schedules.candidates",
+			Data:    data,
+		}
+
+		err = conn.PublishMsg(msg)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+	defer conn.Close()
 
 }
 

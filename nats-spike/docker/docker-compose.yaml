@@ -1,6 +1,8 @@
 services:
   nats:
     image: nats
+    volumes:
+      - xxyyzz:/config
     ports:
       - "8222:8222"
       - "4222:4222"
@@ -19,3 +21,5 @@ services:
 networks:
   nats:
     name: nats
+volumes:
+  xxyyzz:

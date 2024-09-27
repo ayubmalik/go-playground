@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -100,11 +101,14 @@ func main() {
 		_ = nc.Drain()
 	}()
 
-	for _, p := range pairs {
-		data := p.Origin.StopUuid + " " + p.Origin.StopUuid
+	for id, p := range pairs {
+		data := p.Origin.StopUuid + " " + p.Destination.StopUuid
 
+		hdr := nats.Header{}
+		hdr.Add(nats.MsgIdHdr, strconv.Itoa(id))
 		msg := &nats.Msg{
 			Subject: "tds.schedules.candidates",
+			Header:  hdr,
 			Data:    []byte(data),
 		}
 

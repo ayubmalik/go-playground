@@ -3,9 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -40,39 +41,38 @@ func (od ODPair) String() string {
 
 type StopQuery struct {
 	Type      string `json:"type"`
+	Origin    Stop   `json:"origin"`
 	CarrierId int    `json:"carrierId"`
-	CityMode  bool   `json:"cityMode"`
 }
 
 func main() {
-	apiKey := os.Getenv("API_KEY")
+	var creds, apiKey string
+	flag.StringVar(&creds, "creds", "", "creds file location")
+	flag.StringVar(&apiKey, "apiKey", "", "api key")
+	flag.Parse()
+
+	if creds == "" {
+		log.Fatalln("-creds flag needs to be set")
+	}
+
 	if apiKey == "" {
-		fmt.Println("API_KEY env must be set")
-		os.Exit(1)
+		log.Fatalln("-apiKey flag needs to be set")
 	}
 
-	client := http.Client{}
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+
 	start := time.Now()
-	qry := StopQuery{
-		CarrierId: carrierID,
-		Type:      "ORIGIN",
-	}
-
-	origins, err := getStops(qry, apiKey, client)
+	origins, err := GetOrigins(client, apiKey)
 	if err != nil {
-		fmt.Printf("error getting origin stops: %v\n", err)
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 
-	qry = StopQuery{
-		CarrierId: carrierID,
-		Type:      "DESTINATION",
-	}
-
-	destinations, err := getStops(qry, apiKey, client)
+	log.Printf("got %d origins", len(origins))
+	destinations, err := GetDestinations(client, apiKey, origins)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 
 	var pairs []ODPair
@@ -87,39 +87,64 @@ func main() {
 		}
 	}
 
-	fmt.Printf("count pairs: %d\n", len(pairs))
 	took := time.Since(start)
-	fmt.Printf("took %s\n", took)
+	log.Printf("count pairs: %d\n", len(pairs))
+	log.Printf("took %s\n", took)
 
-	conn, err := nats.Connect(nats.DefaultURL)
+	nc, err := nats.Connect("tls://connect.ngs.global", nats.UserCredentials(creds), nats.Name("pub.schedules.candidates"))
 	if err != nil {
-		fmt.Printf("nats conn err: %s\nDef url %s\n", err, nats.DefaultURL)
-		os.Exit(1)
+		log.Fatalf("could not connect to nats %s\n", err)
 	}
+
+	defer func() {
+		_ = nc.Drain()
+	}()
 
 	for _, p := range pairs {
-		data, err := json.Marshal(p)
-		if err != nil {
-			fmt.Printf("could not marshal pair: %v", err)
-			os.Exit(1)
-		}
+		data := p.Origin.StopUuid + " " + p.Origin.StopUuid
 
 		msg := &nats.Msg{
-			Subject: "tds.q.schedules.candidates",
-			Data:    data,
+			Subject: "tds.schedules.candidates",
+			Data:    []byte(data),
 		}
 
-		err = conn.PublishMsg(msg)
+		err = nc.PublishMsg(msg)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 	}
-	defer conn.Close()
 
 }
 
-func getStops(qry StopQuery, apiKey string, client http.Client) ([]Stop, error) {
+func GetOrigins(client http.Client, apiKey string) ([]Stop, error) {
+	qry := StopQuery{
+		CarrierId: carrierID,
+		Type:      "ORIGIN",
+	}
+
+	origins, err := getStops(client, apiKey, qry)
+	if err != nil {
+		return nil, fmt.Errorf("error getting origin stops: %w", err)
+	}
+
+	return origins, nil
+}
+
+func GetDestinations(client http.Client, apiKey string, origins []Stop) ([]Stop, error) {
+	qry := StopQuery{
+		CarrierId: carrierID,
+		Type:      "DESTINATION",
+	}
+
+	destinations, err := getStops(client, apiKey, qry)
+	if err != nil {
+		return nil, err
+	}
+
+	return destinations, nil
+}
+
+func getStops(client http.Client, apiKey string, qry StopQuery) ([]Stop, error) {
 	body, err := json.Marshal(qry)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal query: %w", err)

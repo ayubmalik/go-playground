@@ -23,11 +23,11 @@ type ScheduleRequest struct {
 }
 
 type ScheduleResponse struct {
-	ScheduleProducts []ScheduleProduct `json:"scheduleProducts"`
+	ScheduleProducts []ScheduleProduct
 }
 
 type ScheduleProduct struct {
-	ScheduleRun ScheduleRun `json:"scheduleRun"`
+	ScheduleRun ScheduleRun
 }
 
 type ScheduleRun struct {

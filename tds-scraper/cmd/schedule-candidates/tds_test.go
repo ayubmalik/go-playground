@@ -79,5 +79,6 @@ func TestScheduleAPI(t *testing.T) {
 	}
 
 	t.Log(response)
+	t.Logf("IsEmpty %v", response.IsEmpty())
 
 }

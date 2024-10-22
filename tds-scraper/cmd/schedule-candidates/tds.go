@@ -26,6 +26,10 @@ type ScheduleResponse struct {
 	ScheduleProducts []ScheduleProduct
 }
 
+func (sr ScheduleResponse) IsEmpty() bool {
+	return len(sr.ScheduleProducts) == 0
+}
+
 type ScheduleProduct struct {
 	ScheduleRun ScheduleRun
 }

@@ -68,7 +68,7 @@ func TestScheduleAPI(t *testing.T) {
 		carrier: "BTC",
 	}
 
-	newYork := "0e75ad0a-eff6-491b-9597-dbb262509d40"
+	newYork := "83be15f2-118b-45d9-839c-c92e841f10fd"
 	newPaltz := "bbd3cdc1-0e9e-4869-b337-abcb6868bf41"
 	departure := "2024-10-31"
 	sr := newScheduleRequest(newYork, newPaltz, departure)

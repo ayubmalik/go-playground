@@ -22,7 +22,17 @@ type ScheduleRequest struct {
 	DepartDate      string         `json:"departDate"`
 }
 
-type ScheduleResponse struct{}
+type ScheduleResponse struct {
+	ScheduleProducts []ScheduleProduct `json:"scheduleProducts"`
+}
+
+type ScheduleProduct struct {
+	ScheduleRun ScheduleRun `json:"scheduleRun"`
+}
+
+type ScheduleRun struct {
+	ScheduleUuid string
+}
 
 type ScheduleAPI struct {
 	client  http.Client

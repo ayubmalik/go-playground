@@ -65,3 +65,13 @@ func main() {
 	_ = sub.Drain()
 
 }
+
+func trySchedule(schedules ScheduleAPI, days int, origin, dest string) error {
+	var dates []string
+	for i := range days {
+		dt := time.Now().Add(time.Duration(i+1) * 24 * time.Hour)
+		dates = append(dates, dt.Format("2006-01-02"))
+	}
+	log.Printf("dates: %v", dates)
+	return nil
+}

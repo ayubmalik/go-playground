@@ -66,18 +66,30 @@ func main() {
 
 }
 
-func trySchedule(schedules ScheduleAPI, days int, origin, dest string) error {
-	var dates []string
+type ScheduleFinder interface {
+	FindSchedules(ScheduleQuery) (ScheduleResult, error)
+}
+
+func trySchedule(sf ScheduleFinder, days int, origin, dest string) error {
 	for i := range days {
-		dt := time.Now().Add(time.Duration(i+1) * 24 * time.Hour)
-		dates = append(dates, dt.Format("2006-01-02"))
+		departure := time.Now().Add(time.Duration(i+1) * 24 * time.Hour).Format("2006-01-02")
+		qry := newScheduleQuery(origin, dest, departure)
+
+		result, err := sf.FindSchedules(qry)
+		if err != nil {
+			return err
+		}
+
+		if !result.IsEmpty() {
+			log.Printf("Found a valid schedule for %s -> %s ", origin, dest)
+			break
+		}
 	}
-	log.Printf("dates: %v", dates)
 	return nil
 }
 
-func newScheduleRequest(origin, dest, departure string) ScheduleRequest {
-	return ScheduleRequest{
+func newScheduleQuery(origin, dest, departure string) ScheduleQuery {
+	return ScheduleQuery{
 		PurchaseType:    "SCHEDULE_BOOK",
 		Origin:          Stop{origin},
 		Destination:     Stop{dest},

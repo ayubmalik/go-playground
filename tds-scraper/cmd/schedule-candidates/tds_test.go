@@ -8,24 +8,9 @@ import (
 	"time"
 )
 
-func TestTrySchedule(t *testing.T) {
-
-	t.Run("days range", func(t *testing.T) {
-
-		var api ScheduleAPI
-		days := 7
-
-		err := trySchedule(api, days, "origin", "dest")
-
-		if err != nil {
-			t.Errorf("not trySchedule error %v", err)
-		}
-	})
-}
-
 func TestNewScheduleRequest(t *testing.T) {
 	t.Run("new schedule request", func(t *testing.T) {
-		req := newScheduleRequest("orig1", "dest1", "2025-12-25")
+		req := newScheduleQuery("orig1", "dest1", "2025-12-25")
 
 		if req.PurchaseType != "SCHEDULE_BOOK" {
 			t.Errorf("req.purchaseType = %s, want %s", req.PurchaseType, "SCHEDULE_BOOK")
@@ -37,8 +22,35 @@ func TestNewScheduleRequest(t *testing.T) {
 	})
 }
 
-func TestRange(t *testing.T) {
+func TestTdsClient(t *testing.T) {
+	tds := createTDSClient()
 
+	newYork := "83be15f2-118b-45d9-839c-c92e841f10fd"
+	newPaltz := "bbd3cdc1-0e9e-4869-b337-abcb6868bf41"
+	departure := "2024-10-31"
+	qry := newScheduleQuery(newYork, newPaltz, departure)
+
+	result, err := tds.FindSchedules(qry)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(result)
+	t.Logf("IsEmpty %v", result.IsEmpty())
+}
+
+func TestTrySchedule(t *testing.T) {
+	tds := createTDSClient()
+
+	t.Run("days range", func(t *testing.T) {
+
+		if err := trySchedule(tds, 2, "origin", "dest"); err != nil {
+			t.Errorf("not trySchedule error %v", err)
+		}
+	})
+}
+
+func TestRange(t *testing.T) {
 	var count int
 
 	for x := range doRange(7) {
@@ -63,7 +75,7 @@ func doRange(days int) func(yield func(date string) bool) {
 	}
 }
 
-func TestScheduleAPI(t *testing.T) {
+func createTDSClient() TdsClient {
 	transport := http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		Dial: (&net.Dialer{
@@ -77,24 +89,11 @@ func TestScheduleAPI(t *testing.T) {
 		Timeout:   10 * time.Second,
 	}
 
-	api := ScheduleAPI{
+	tds := TdsClient{
 		client:  client,
 		baseUrl: "https://ride-api.bustickets.com/tickets/v2",
 		apiKey:  "E54589A3-85E1-43D5-90C4-E0F33645CF1A",
 		carrier: "BTC",
 	}
-
-	newYork := "83be15f2-118b-45d9-839c-c92e841f10fd"
-	newPaltz := "bbd3cdc1-0e9e-4869-b337-abcb6868bf41"
-	departure := "2024-10-31"
-	sr := newScheduleRequest(newYork, newPaltz, departure)
-
-	response, err := api.Get(sr)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log(response)
-	t.Logf("IsEmpty %v", response.IsEmpty())
-
+	return tds
 }

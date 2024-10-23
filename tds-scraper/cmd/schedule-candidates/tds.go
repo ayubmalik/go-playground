@@ -13,7 +13,7 @@ type Stop struct {
 	StopUuid string `json:"stopUuid"`
 }
 
-type ScheduleRequest struct {
+type ScheduleQuery struct {
 	PassengerCounts map[string]int `json:"passengerCounts"`
 	PurchaseType    string         `json:"purchaseType"`
 	Origin          Stop           `json:"origin"`
@@ -21,11 +21,11 @@ type ScheduleRequest struct {
 	DepartDate      string         `json:"departDate"`
 }
 
-type ScheduleResponse struct {
+type ScheduleResult struct {
 	ScheduleProducts []ScheduleProduct
 }
 
-func (sr ScheduleResponse) IsEmpty() bool {
+func (sr ScheduleResult) IsEmpty() bool {
 	return len(sr.ScheduleProducts) == 0
 }
 
@@ -37,48 +37,48 @@ type ScheduleRun struct {
 	ScheduleUuid string
 }
 
-type ScheduleAPI struct {
+type TdsClient struct {
 	client  http.Client
 	baseUrl string
 	apiKey  string
 	carrier string
 }
 
-func (s ScheduleAPI) Get(scheduleRequest ScheduleRequest) (ScheduleResponse, error) {
-	var scheduleResponse ScheduleResponse
+func (t TdsClient) FindSchedules(qry ScheduleQuery) (ScheduleResult, error) {
+	var result ScheduleResult
 
-	payload, err := json.Marshal(scheduleRequest)
+	payload, err := json.Marshal(qry)
 	if err != nil {
-		return ScheduleResponse{}, err
+		return result, err
 	}
 
 	log.Printf("PAYLOAD: \n%s\n", string(payload))
-	req, err := http.NewRequest("POST", s.baseUrl+"/schedule", bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", t.baseUrl+"/schedule", bytes.NewBuffer(payload))
 	if err != nil {
-		return scheduleResponse, err
+		return result, err
 	}
 
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("TdsApiKey", s.apiKey)
-	req.Header.Add("TDS-Carrier-Code", s.carrier)
+	req.Header.Set("TdsApiKey", t.apiKey)
+	req.Header.Add("TDS-Carrier-Code", t.carrier)
 
-	resp, err := s.client.Do(req)
+	resp, err := t.client.Do(req)
 	if err != nil {
-		return scheduleResponse, fmt.Errorf("error executing request: %w", err)
+		return result, fmt.Errorf("error executing request: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return scheduleResponse, fmt.Errorf("bad status code: %d, %s", resp.StatusCode, resp.Status)
+		return result, fmt.Errorf("bad status code: %d, %s", resp.StatusCode, resp.Status)
 	}
 	defer resp.Body.Close()
 
 	buf, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return scheduleResponse, err
+		return result, err
 	}
 
-	err = json.Unmarshal(buf, &scheduleResponse)
+	err = json.Unmarshal(buf, &result)
 
-	return scheduleResponse, err
+	return result, err
 }

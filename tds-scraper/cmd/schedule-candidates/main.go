@@ -56,7 +56,7 @@ func main() {
 		log.Printf("- %s - got msg: %s", msg.Header.Get(nats.MsgIdHdr), string(msg.Data))
 	})
 	if err != nil {
-		//		stop()
+		stop()
 		log.Fatal(err)
 	}
 

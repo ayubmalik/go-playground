@@ -37,13 +37,29 @@ func TestNewScheduleRequest(t *testing.T) {
 	})
 }
 
-func newScheduleRequest(origin, dest, departure string) ScheduleRequest {
-	return ScheduleRequest{
-		PurchaseType:    "SCHEDULE_BOOK",
-		Origin:          Stop{origin},
-		Destination:     Stop{dest},
-		DepartDate:      departure,
-		PassengerCounts: map[string]int{"Adult": 1},
+func TestRange(t *testing.T) {
+
+	var count int
+
+	for x := range doRange(7) {
+		count++
+		t.Logf("x = %s", x)
+	}
+
+	if count != 7 {
+		t.Errorf("count = %d, want = %d", count, 7)
+	}
+}
+
+// Only example how to write a range
+func doRange(days int) func(yield func(date string) bool) {
+	return func(yield func(date string) bool) {
+		for i := range days {
+			dt := time.Now().Add(24 * time.Hour * time.Duration(i+1)).Format("2006-01-02")
+			if !yield(dt) {
+				return
+			}
+		}
 	}
 }
 

@@ -1,6 +1,6 @@
 module tds-scraper
 
-go 1.22
+go 1.23
 
 require github.com/samber/lo v1.39.0
 

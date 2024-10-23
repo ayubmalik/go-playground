@@ -75,3 +75,13 @@ func trySchedule(schedules ScheduleAPI, days int, origin, dest string) error {
 	log.Printf("dates: %v", dates)
 	return nil
 }
+
+func newScheduleRequest(origin, dest, departure string) ScheduleRequest {
+	return ScheduleRequest{
+		PurchaseType:    "SCHEDULE_BOOK",
+		Origin:          Stop{origin},
+		Destination:     Stop{dest},
+		DepartDate:      departure,
+		PassengerCounts: map[string]int{"Adult": 1},
+	}
+}

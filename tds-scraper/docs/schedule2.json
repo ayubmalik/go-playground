@@ -1,0 +1,28 @@
+{
+  "purchaseType":"SCHEDULE_BOOK",
+  "origin":{
+    "stopUuid":"83be15f2-118b-45d9-839c-c92e841f10fd",
+    "id":2055,
+    "value":"New York (P.A.B.T.), NY",
+    "name":"New York",
+    "stationCode":"NYC "
+  },
+  "destination":{
+    "stopUuid":"65c9d76c-0971-4b19-abf8-54299ef60d8a",
+    "id":273,
+    "value":"Boston (South Station), MA",
+    "name":"Boston",
+    "stationCode":"BOS "
+  },
+  "departDate":"2024-10-20",
+  "cityMode":false,
+  "isReturn":false,
+  "passengerCounts":{
+    "Adult":1,
+    "Military":0,
+    "Senior":0,
+    "Student":0,
+    "Child":0
+  }
+}
+

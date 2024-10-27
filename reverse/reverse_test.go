@@ -25,7 +25,9 @@ func TestReverse2(t *testing.T) {
 		{"Hello, 世界", "界世 ,olleH"},
 		{"", ""},
 	}
+
 	for _, test := range tests {
+		// what the
 		if got := Reverse2(test.in); got != test.want {
 			t.Errorf("Reverse2(%q) = %q, want %q", test.in, got, test.want)
 		}

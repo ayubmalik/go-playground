@@ -53,13 +53,13 @@ func main() {
 		_ = nc.Drain()
 	}()
 
-	finder := TdsClient{}
+	finder := NewClient()
 	sub, err := nc.QueueSubscribe("tds.schedules.candidates", "candidates", func(msg *nats.Msg) {
 		log.Printf("- %s - got msg: %s", msg.Header.Get(nats.MsgIdHdr), string(msg.Data))
-		stops := strings.Split(string(msg.Data), "-")
-		err2 := trySchedule(finder, 7, stops[0], stops[1])
-		if err2 != nil {
-			log.Println(err2)
+		stops := strings.Split(string(msg.Data), " ")
+		scheduleErr := trySchedule(finder, 7, stops[0], stops[1])
+		if scheduleErr != nil {
+			log.Println(scheduleErr)
 		}
 	})
 	if err != nil {

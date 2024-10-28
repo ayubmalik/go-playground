@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"net/http"
 	"time"
@@ -77,7 +76,7 @@ func (t TdsClient) FindSchedules(qry ScheduleQuery) (ScheduleResult, error) {
 		return result, err
 	}
 
-	log.Printf("PAYLOAD: \n%s\n", string(payload))
+	//log.Printf("PAYLOAD: \n%s\n", string(payload))
 	req, err := http.NewRequest("POST", t.baseUrl+"/schedule", bytes.NewBuffer(payload))
 	if err != nil {
 		return result, err

@@ -37,7 +37,7 @@ type ODPair struct {
 }
 
 func (od ODPair) String() string {
-	return fmt.Sprintf("%s -> %s", od.Origin.StationName, od.Destination.StationName)
+	return fmt.Sprintf("%s %s", od.Origin.StationName, od.Destination.StationName)
 }
 
 type StopQuery struct {
@@ -47,18 +47,15 @@ type StopQuery struct {
 }
 
 func main() {
-	var creds, apiKey string
-	flag.StringVar(&creds, "creds", "", "creds file location")
-	flag.StringVar(&apiKey, "apiKey", "", "api key")
+	var credentials string
+	flag.StringVar(&credentials, "credentials", "", "credentials file location")
 	flag.Parse()
 
-	if creds == "" {
-		log.Fatalln("-creds flag needs to be set")
+	if credentials == "" {
+		log.Fatalln("-credentials flag needs to be set")
 	}
 
-	if apiKey == "" {
-		log.Fatalln("-apiKey flag needs to be set")
-	}
+	apiKey := "E54589A3-85E1-43D5-90C4-E0F33645CF1A"
 
 	client := http.Client{
 		Timeout: 10 * time.Second,
@@ -92,7 +89,7 @@ func main() {
 	log.Printf("count pairs: %d\n", len(pairs))
 	log.Printf("took %s\n", took)
 
-	nc, err := nats.Connect("tls://connect.ngs.global", nats.UserCredentials(creds), nats.Name("pub.schedules.candidates"))
+	nc, err := nats.Connect("tls://connect.ngs.global", nats.UserCredentials(credentials), nats.Name("pub.schedules.candidates"))
 	if err != nil {
 		log.Fatalf("could not connect to nats %s\n", err)
 	}

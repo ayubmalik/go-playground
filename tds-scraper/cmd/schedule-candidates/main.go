@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -52,8 +53,11 @@ func main() {
 		_ = nc.Drain()
 	}()
 
+	finder := TdsClient{}
 	sub, err := nc.QueueSubscribe("tds.schedules.candidates", "candidates", func(msg *nats.Msg) {
 		log.Printf("- %s - got msg: %s", msg.Header.Get(nats.MsgIdHdr), string(msg.Data))
+		stops := strings.Split(string(msg.Data), "-")
+		trySchedule(finder, 7, stops[0], stops[1])
 	})
 	if err != nil {
 		stop()
@@ -67,7 +71,7 @@ func main() {
 }
 
 type ScheduleFinder interface {
-	FindSchedules(ScheduleQuery) (ScheduleResult, error)
+	FindSchedules(qry ScheduleQuery) (ScheduleResult, error)
 }
 
 func trySchedule(sf ScheduleFinder, days int, origin, dest string) error {

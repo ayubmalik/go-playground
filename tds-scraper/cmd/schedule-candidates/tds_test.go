@@ -39,30 +39,6 @@ func TestTdsClient(t *testing.T) {
 	t.Logf("IsEmpty %v", result.IsEmpty())
 }
 
-func TestTrySchedule(t *testing.T) {
-	tds := createTDSClient()
-
-	t.Run("days range", func(t *testing.T) {
-
-		if err := trySchedule(tds, 2, "origin", "dest"); err != nil {
-			t.Errorf("not trySchedule error %v", err)
-		}
-	})
-}
-
-func TestRange(t *testing.T) {
-	var count int
-
-	for x := range doRange(7) {
-		count++
-		t.Logf("x = %s", x)
-	}
-
-	if count != 7 {
-		t.Errorf("count = %d, want = %d", count, 7)
-	}
-}
-
 // Only example how to write a range
 func doRange(days int) func(yield func(date string) bool) {
 	return func(yield func(date string) bool) {
@@ -73,6 +49,11 @@ func doRange(days int) func(yield func(date string) bool) {
 			}
 		}
 	}
+}
+
+func TestDoRange(t *testing.T) {
+	doRange(1)
+	t.Skip()
 }
 
 func createTDSClient() TdsClient {

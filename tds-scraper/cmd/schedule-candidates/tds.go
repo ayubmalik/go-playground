@@ -11,18 +11,22 @@ import (
 	"time"
 )
 
+const (
+	Timeout = 30
+)
+
 func NewClient() TdsClient {
 	transport := http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
-			Timeout: 3 * time.Second,
+			Timeout: Timeout * time.Second,
 		}).DialContext,
-		TLSHandshakeTimeout: 10 * time.Second,
+		TLSHandshakeTimeout: Timeout * time.Second,
 	}
 
 	client := http.Client{
 		Transport: &transport,
-		Timeout:   10 * time.Second,
+		Timeout:   Timeout * time.Second,
 	}
 
 	tds := TdsClient{

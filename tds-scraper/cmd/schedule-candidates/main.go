@@ -14,19 +14,19 @@ import (
 )
 
 func main() {
-	var creds string
-	flag.StringVar(&creds, "creds", "", "creds file location")
+	var credentials string
+	flag.StringVar(&credentials, "credentials", "", "credentials file location")
 	flag.Parse()
 
-	if creds == "" {
-		log.Fatalln("-creds flag needs to be set")
+	if credentials == "" {
+		log.Fatalln("-credentials flag needs to be set")
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	opts := []nats.Option{
-		nats.UserCredentials(creds),
+		nats.UserCredentials(credentials),
 		nats.Name("sub.schedules.candidates"),
 		nats.ConnectHandler(func(c *nats.Conn) {
 			log.Println("Connected to", c.ConnectedUrl())
@@ -35,7 +35,7 @@ func main() {
 		nats.ReconnectHandler(func(c *nats.Conn) {
 			log.Println("Reconnected to", c.ConnectedUrl())
 		}),
-		nats.DisconnectHandler(func(c *nats.Conn) {
+		nats.DisconnectErrHandler(func(conn *nats.Conn, err error) {
 			log.Println("Disconnected from NATS")
 		}),
 		nats.ClosedHandler(func(c *nats.Conn) {
@@ -57,7 +57,10 @@ func main() {
 	sub, err := nc.QueueSubscribe("tds.schedules.candidates", "candidates", func(msg *nats.Msg) {
 		log.Printf("- %s - got msg: %s", msg.Header.Get(nats.MsgIdHdr), string(msg.Data))
 		stops := strings.Split(string(msg.Data), "-")
-		trySchedule(finder, 7, stops[0], stops[1])
+		err2 := trySchedule(finder, 7, stops[0], stops[1])
+		if err2 != nil {
+			log.Println(err2)
+		}
 	})
 	if err != nil {
 		stop()

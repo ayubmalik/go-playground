@@ -6,8 +6,33 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
+	"time"
 )
+
+func NewClient() TdsClient {
+	transport := http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout: 3 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout: 10 * time.Second,
+	}
+
+	client := http.Client{
+		Transport: &transport,
+		Timeout:   10 * time.Second,
+	}
+
+	tds := TdsClient{
+		client:  client,
+		baseUrl: "https://ride-api.bustickets.com/tickets/v2",
+		apiKey:  "E54589A3-85E1-43D5-90C4-E0F33645CF1A",
+		carrier: "BTC",
+	}
+	return tds
+}
 
 type Stop struct {
 	StopUuid string `json:"stopUuid"`
@@ -71,7 +96,7 @@ func (t TdsClient) FindSchedules(qry ScheduleQuery) (ScheduleResult, error) {
 	if resp.StatusCode != http.StatusOK {
 		return result, fmt.Errorf("bad status code: %d, %s", resp.StatusCode, resp.Status)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	buf, err := io.ReadAll(resp.Body)
 	if err != nil {

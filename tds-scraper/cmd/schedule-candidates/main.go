@@ -98,7 +98,7 @@ func trySchedule(sf ScheduleFinder, days int, origin, dest string) error {
 			}
 
 			if !result.IsEmpty() {
-				log.Printf("Found a valid schedule for %s -> %s ", origin, dest)
+				log.Printf("Found a valid schedule for %s %s %s", departure, origin, dest)
 				cancel()
 			}
 		}()

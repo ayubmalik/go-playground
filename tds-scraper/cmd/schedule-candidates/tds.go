@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -68,7 +69,7 @@ type TdsClient struct {
 	carrier string
 }
 
-func (t TdsClient) FindSchedules(qry ScheduleQuery) (ScheduleResult, error) {
+func (t TdsClient) FindSchedules(ctx context.Context, qry ScheduleQuery) (ScheduleResult, error) {
 	var result ScheduleResult
 
 	payload, err := json.Marshal(qry)
@@ -76,8 +77,7 @@ func (t TdsClient) FindSchedules(qry ScheduleQuery) (ScheduleResult, error) {
 		return result, err
 	}
 
-	//log.Printf("PAYLOAD: \n%s\n", string(payload))
-	req, err := http.NewRequest("POST", t.baseUrl+"/schedule", bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, "POST", t.baseUrl+"/schedule", bytes.NewBuffer(payload))
 	if err != nil {
 		return result, err
 	}

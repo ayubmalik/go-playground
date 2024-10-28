@@ -30,7 +30,7 @@ func TestTdsClient(t *testing.T) {
 	departure := "2024-11-12"
 	qry := newScheduleQuery(newYork, newPaltz, departure)
 
-	result, err := tds.FindSchedules(qry)
+	result, err := tds.FindSchedules(nil, qry)
 	if err != nil {
 		t.Fatal(err)
 	}

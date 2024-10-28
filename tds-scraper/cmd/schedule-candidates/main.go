@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"log"
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -74,24 +76,35 @@ func main() {
 }
 
 type ScheduleFinder interface {
-	FindSchedules(qry ScheduleQuery) (ScheduleResult, error)
+	FindSchedules(ctx context.Context, qry ScheduleQuery) (ScheduleResult, error)
 }
 
 func trySchedule(sf ScheduleFinder, days int, origin, dest string) error {
+	wg := sync.WaitGroup{}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	for i := range days {
+		wg.Add(1)
 		departure := time.Now().Add(time.Duration(i+1) * 24 * time.Hour).Format("2006-01-02")
 		qry := newScheduleQuery(origin, dest, departure)
 
-		result, err := sf.FindSchedules(qry)
-		if err != nil {
-			return err
-		}
+		go func() {
+			defer wg.Done()
+			result, err := sf.FindSchedules(ctx, qry)
+			if err != nil && !errors.Is(err, context.Canceled) {
+				log.Printf("error finding schedules: %s", err)
+				return
+			}
 
-		if !result.IsEmpty() {
-			log.Printf("Found a valid schedule for %s -> %s ", origin, dest)
-			break
-		}
+			if !result.IsEmpty() {
+				log.Printf("Found a valid schedule for %s -> %s ", origin, dest)
+				cancel()
+			}
+		}()
+		time.Sleep(50 * time.Millisecond)
 	}
+	wg.Wait()
 	return nil
 }
 

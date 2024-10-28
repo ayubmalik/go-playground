@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 type stubClient struct {
 	count       int
@@ -8,7 +11,7 @@ type stubClient struct {
 	destination string
 }
 
-func (s *stubClient) FindSchedules(qry ScheduleQuery) (ScheduleResult, error) {
+func (s *stubClient) FindSchedules(ctx context.Context, qry ScheduleQuery) (ScheduleResult, error) {
 	s.count++
 	s.origin = qry.Origin.StopUuid
 	s.destination = qry.Destination.StopUuid

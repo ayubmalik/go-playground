@@ -27,7 +27,7 @@ func TestTdsClient(t *testing.T) {
 
 	newYork := "83be15f2-118b-45d9-839c-c92e841f10fd"
 	newPaltz := "bbd3cdc1-0e9e-4869-b337-abcb6868bf41"
-	departure := "2024-10-31"
+	departure := "2024-11-12"
 	qry := newScheduleQuery(newYork, newPaltz, departure)
 
 	result, err := tds.FindSchedules(qry)
@@ -52,8 +52,8 @@ func doRange(days int) func(yield func(date string) bool) {
 }
 
 func TestDoRange(t *testing.T) {
-	doRange(1)
 	t.Skip()
+	doRange(1)
 }
 
 func createTDSClient() TdsClient {

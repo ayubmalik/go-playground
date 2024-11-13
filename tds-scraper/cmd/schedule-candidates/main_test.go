@@ -22,7 +22,7 @@ func (s *stubClient) FindSchedules(_ context.Context, qry ScheduleQuery) (Schedu
 func TestTrySchedule(t *testing.T) {
 	tds := &stubClient{}
 	t.Run("days range", func(t *testing.T) {
-		_ = trySchedule(tds, 7, "origin", "dest")
+		_ = trySchedule(tds, 7, "origin", "dest", nil)
 		if tds.count != 7 {
 			t.Errorf("client calls = %d, want 2", tds.count)
 		}

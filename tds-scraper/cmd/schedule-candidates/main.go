@@ -79,6 +79,9 @@ type ScheduleFinder interface {
 	FindSchedules(ctx context.Context, qry ScheduleQuery) (ScheduleResult, error)
 }
 
+type OriginDestinationInserter interface {
+}
+
 func trySchedule(sf ScheduleFinder, days int, origin, dest string) error {
 	wg := sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())

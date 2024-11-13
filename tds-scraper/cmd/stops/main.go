@@ -62,6 +62,7 @@ func main() {
 	}
 
 	start := time.Now()
+
 	origins, err := GetOrigins(client, apiKey)
 	if err != nil {
 		log.Fatalln(err)

@@ -12,7 +12,7 @@ type stubClient struct {
 	destination string
 }
 
-func (s *stubClient) FindSchedules(ctx context.Context, qry ScheduleQuery) (ScheduleResult, error) {
+func (s *stubClient) FindSchedules(_ context.Context, qry ScheduleQuery) (ScheduleResult, error) {
 	s.count++
 	s.origin = qry.Origin.StopUuid
 	s.destination = qry.Destination.StopUuid
@@ -55,7 +55,7 @@ func TestDays(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			date, _ := time.Parse(time.DateOnly, test.dt)
 			want, _ := time.Parse(time.DateOnly, test.want)
-			
+
 			got := nextMonday(date)
 			if got != want {
 				t.Errorf("nextMonday = %s, want %s", got, test.want)

@@ -15,7 +15,7 @@ const (
 	Timeout = 30
 )
 
-func NewClient() TdsClient {
+func NewTDSClient() TdsClient {
 	transport := http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
@@ -38,8 +38,19 @@ func NewClient() TdsClient {
 	return tds
 }
 
+type City struct {
+	Name string `json:"name"`
+}
+
+type State struct {
+	Abbreviation string `json:"abbreviation"`
+	Country      string `json:"country"`
+}
+
 type Stop struct {
 	StopUuid string `json:"stopUuid"`
+	City     City   `json:"city"`
+	State    State  `json:"state"`
 }
 
 type ScheduleQuery struct {
@@ -58,12 +69,22 @@ func (sr ScheduleResult) IsEmpty() bool {
 	return len(sr.ScheduleProducts) == 0
 }
 
+func (sr ScheduleResult) OriginDestination() (Stop, Stop) {
+	if sr.IsEmpty() {
+		return Stop{}, Stop{}
+	}
+
+	return sr.ScheduleProducts[0].ScheduleRun.Origin, sr.ScheduleProducts[0].ScheduleRun.Destination
+}
+
 type ScheduleProduct struct {
 	ScheduleRun ScheduleRun
 }
 
 type ScheduleRun struct {
 	ScheduleUuid string
+	Origin       Stop
+	Destination  Stop
 }
 
 type TdsClient struct {

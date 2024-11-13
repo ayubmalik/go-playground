@@ -55,11 +55,14 @@ func main() {
 		_ = nc.Drain()
 	}()
 
-	finder := NewClient()
+	finder := NewTDSClient()
+
+	inserter := NewODInserter(nc)
+
 	sub, err := nc.QueueSubscribe("tds.schedules.candidates", "candidates", func(msg *nats.Msg) {
 		log.Printf("- %s - got msg: %s", msg.Header.Get(nats.MsgIdHdr), string(msg.Data))
 		stops := strings.Split(string(msg.Data), " ")
-		scheduleErr := trySchedule(finder, 7, stops[0], stops[1])
+		scheduleErr := trySchedule(finder, 7, stops[0], stops[1], inserter)
 		if scheduleErr != nil {
 			log.Println(scheduleErr)
 		}
@@ -80,9 +83,10 @@ type ScheduleFinder interface {
 }
 
 type OriginDestinationInserter interface {
+	Insert(ctx context.Context, origin Stop, destination Stop) error
 }
 
-func trySchedule(sf ScheduleFinder, days int, origin, dest string) error {
+func trySchedule(sf ScheduleFinder, days int, origin, dest string, odi OriginDestinationInserter) error {
 	wg := sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -102,6 +106,8 @@ func trySchedule(sf ScheduleFinder, days int, origin, dest string) error {
 
 			if !result.IsEmpty() {
 				log.Printf("Found a valid schedule for %s %s %s", departure, origin, dest)
+				originStop, destinationStop := result.OriginDestination()
+				_ = odi.Insert(ctx, originStop, destinationStop)
 				cancel()
 			}
 		}()
@@ -111,11 +117,11 @@ func trySchedule(sf ScheduleFinder, days int, origin, dest string) error {
 	return nil
 }
 
-func newScheduleQuery(origin, dest, departure string) ScheduleQuery {
+func newScheduleQuery(originUUID, destUUID, departure string) ScheduleQuery {
 	return ScheduleQuery{
 		PurchaseType:    "SCHEDULE_BOOK",
-		Origin:          Stop{origin},
-		Destination:     Stop{dest},
+		Origin:          Stop{StopUuid: originUUID},
+		Destination:     Stop{StopUuid: destUUID},
 		DepartDate:      departure,
 		PassengerCounts: map[string]int{"Adult": 1},
 	}

@@ -13,13 +13,11 @@ type Stop struct {
 }
 
 func TestKVSpike(t *testing.T) {
-	credentials := "/home/ayub/Downloads/NGS-Default-user_pub_ayub.creds"
-
 	opts := []nats.Option{
-		nats.UserCredentials(credentials),
+		nats.Name("origin_destination_inserter_test"),
 	}
 
-	nc, err := nats.Connect("tls://connect.ngs.global", opts...)
+	nc, err := nats.Connect("nats://localhost", opts...)
 	if err != nil {
 		t.Fatalf("could not connect to nats %s\n", err)
 	}
@@ -34,35 +32,41 @@ func TestKVSpike(t *testing.T) {
 
 	t.Run("put", func(t *testing.T) {
 		kv, err := js.CreateKeyValue(&nats.KeyValueConfig{
-			Bucket: "OriginDestinationsX",
+			Bucket: "OriginDestinations",
 		})
 
 		if err != nil {
 			t.Fatalf("could not create kv %s\n", err)
 		}
 
-		_, err = kv.Put("x", []byte("hello"))
+		origin := Stop{StopUuid: uuid.NewString(), City: "New York"}
+		_ = kv.Delete(origin.StopUuid)
 
-		dests := make([]Stop, 0, 100)
-		for range 5 {
+		destinations := make([]Stop, 0)
+		for range 200 {
+			entry, err := kv.Get(origin.StopUuid)
+			if err == nil {
+				err = json.Unmarshal(entry.Value(), &destinations)
+				if err != nil {
+					t.Fatalf("could not unmarshal kv %s\n", err)
+				}
+			}
+
 			id := uuid.New().String()
-			stop := Stop{StopUuid: id, City: "New York"}
-			key, _ := json.Marshal(stop)
-			entry, err := kv.Get(string(key))
+			destinations = append(destinations, Stop{StopUuid: id, City: "New York"})
+			data, _ := json.Marshal(destinations)
+			_, err = kv.Put(origin.StopUuid, data)
 			if err != nil {
-				t.Fatalf("could not get kv %s\n", err)
+				t.Fatalf("could not update '%s', kv %s\n", origin.StopUuid, err)
 			}
-
-			err = json.Unmarshal(entry.Value(), &dests)
-			if err != nil {
-				t.Fatalf("could not unmarshal kv %s\n", err)
-			}
-
-			t.Logf("dests: %v\n", dests)
 		}
 
 		if err != nil {
 			t.Fatalf("could not put value: %s\n", err)
+		}
+
+		for _, destination := range destinations {
+			t.Logf("destination: %s\n", destination.StopUuid)
 		}
 	})
 

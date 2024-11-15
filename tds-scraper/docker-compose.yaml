@@ -4,18 +4,31 @@ services:
     ports:
       - "8222:8222"
       - "4222:4222"
-    command: "--cluster_name TDS --cluster nats://0.0.0.0:6222 --http_port 8222"
-    networks: ["nats"]
+    command: "--cluster_name TDS --sd /data --cluster nats://0.0.0.0:6222 --http_port 8222"
+    networks: [ "nats" ]
+    volumes:
+      - nats:/data
   nats1:
     image: nats:2.10.22
-    command: "--name nats1 --js --cluster_name TDS --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
-    networks: ["nats"]
-    depends_on: ["nats"]
+    command: "--name nats1 --js --cluster_name TDS --sd /data --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
+    networks: [ "nats" ]
+    volumes:
+      - nats1:/data
+    depends_on: [ "nats" ]
   nats2:
     image: nats:2.10.22
-    command: "--name nats2 --js --cluster_name TDS --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
-    networks: ["nats"]
-    depends_on: ["nats"]
+    command: "--name nats2 --js --cluster_name TDS --sd /data --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
+    networks: [ "nats" ]
+    volumes:
+      - nats2:/data
+    depends_on: [ "nats" ]
 networks:
   nats:
     name: nats
+volumes:
+  nats:
+    external: true
+  nats1:
+    external: true
+  nats2:
+    external: true

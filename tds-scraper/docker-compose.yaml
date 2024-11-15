@@ -1,22 +1,21 @@
 services:
   nats:
-    image: nats
+    image: nats:2.10.22
     ports:
       - "8222:8222"
       - "4222:4222"
-    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --http_port 8222"
+    command: "--cluster_name TDS --cluster nats://0.0.0.0:6222 --http_port 8222"
     networks: ["nats"]
-  nats-1:
-    image: nats
-    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
-    networks: ["nats"]
-    depends_on: ["nats"]
-  nats-2:
-    image: nats
-    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
+  nats1:
+    image: nats:2.10.22
+    command: "--name nats1 --js --cluster_name TDS --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
     networks: ["nats"]
     depends_on: ["nats"]
-
+  nats2:
+    image: nats:2.10.22
+    command: "--name nats2 --js --cluster_name TDS --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
+    networks: ["nats"]
+    depends_on: ["nats"]
 networks:
   nats:
     name: nats

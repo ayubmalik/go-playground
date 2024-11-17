@@ -13,11 +13,14 @@ type Stop struct {
 }
 
 func TestKVSpike(t *testing.T) {
+	credentials := "/home/ayub/Downloads/NGS-Default-CLI.creds"
+
 	opts := []nats.Option{
 		nats.Name("origin_destination_inserter_test"),
+		nats.UserCredentials(credentials),
 	}
 
-	nc, err := nats.Connect("nats://localhost", opts...)
+	nc, err := nats.Connect("tls://connect.ngs.global", opts...)
 	if err != nil {
 		t.Fatalf("could not connect to nats %s\n", err)
 	}
@@ -32,7 +35,9 @@ func TestKVSpike(t *testing.T) {
 
 	t.Run("put", func(t *testing.T) {
 		kv, err := js.CreateKeyValue(&nats.KeyValueConfig{
-			Bucket: "OriginDestinations",
+			Bucket:       "TdsOriginDestinations",
+			MaxBytes:     16 * 1024 * 1024,
+			MaxValueSize: 512 * 1024,
 		})
 
 		if err != nil {

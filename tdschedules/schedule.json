@@ -1,0 +1,16 @@
+{
+	"purchaseType": "SCHEDULE_BOOK",
+	"origin": {
+		"stopUuid": "ab336d55-21ee-4c2c-9732-43ffc15a774b",
+		"name": "Atlanta"
+	},
+	"destination": {
+		"stopUuid": "1889cd2c-6172-46a4-821c-94c7337c7d45",
+		"name": "Augusta"
+	},
+	"departDate": "2024-08-30",
+	"isReturn": false,
+	"passengerCounts": {
+		"Adult": 1
+	}
+}

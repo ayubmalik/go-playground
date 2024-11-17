@@ -1,0 +1,35 @@
+{
+	"purchaseType": "SCHEDULE_BOOK",
+	"outbound": {
+		"scheduleUuid": "aef55eda-c084-4beb-a0bd-b56fd2a65128",
+		"origin": {
+			"stopUuid": "ab336d55-21ee-4c2c-9732-43ffc15a774b",
+			"name": "Atlanta"
+		},
+		"destination": {
+			"stopUuid": "1889cd2c-6172-46a4-821c-94c7337c7d45",
+			"name": "Augusta"
+		},
+		"occurrence": 1,
+		"departDate": "2024-08-30"
+	},
+	"passengers": {
+		"Adult": [
+			{
+				"firstName": "Roger",
+				"lastName": "Mellie",
+				"wheelchair": false,
+				"type": "Adult",
+				"outboundFare": {
+					"mileageFareId": "ea086fc4-aa96-ed11-8c9c-005056a95df5",
+					"type": "Mileage"
+				},
+				"outboundBags": {
+					"count": 0
+				},
+				"adaRequests": []
+			}
+			
+		]
+	}
+}

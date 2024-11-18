@@ -1,4 +1,4 @@
-package tdschedules
+package tdsschedules
 
 import (
 	"github.com/jackc/pgx/v5"

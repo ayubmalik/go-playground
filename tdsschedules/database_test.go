@@ -1,4 +1,4 @@
-package tdschedules_test
+package tdsschedules_test
 
 import (
 	"context"

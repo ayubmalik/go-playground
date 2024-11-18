@@ -1,4 +1,4 @@
-module tds-schedules
+module tdsschedules
 
 go 1.23.2
 

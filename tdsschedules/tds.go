@@ -60,7 +60,7 @@ type ScheduleRun struct {
 	Destination  Stop
 }
 
-func NewTDSClient() TdsClient {
+func NewTDSClient(apiKey, carrierCode string) TdsClient {
 	timeout := 30 * time.Second
 	transport := http.Transport{
 		DialContext: (&net.Dialer{
@@ -78,9 +78,9 @@ func NewTDSClient() TdsClient {
 
 	tds := TdsClient{
 		client:  client,
-		baseUrl: "https://ride-api.bustickets.com/tickets/v2",
-		apiKey:  "E54589A3-85E1-43D5-90C4-E0F33645CF1A",
-		carrier: "BTC",
+		baseUrl: "https://ride-api.bustickets.com/tickets",
+		apiKey:  apiKey,
+		carrier: carrierCode,
 	}
 	return tds
 }
@@ -131,12 +131,9 @@ func (t TdsClient) FindSchedules(ctx context.Context, qry ScheduleQuery) (Schedu
 }
 
 func (t TdsClient) FindStops() ([]Stop, error) {
-	payload := []byte(`{
-		"type": "ORIGIN",
-		"carrierId": 304
-	}`)
+	payload := `{"carrierId":221,"type":"ORIGIN"}`
 
-	req, err := http.NewRequest("POST", t.baseUrl+"/stop", bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", t.baseUrl+"/stop", bytes.NewBufferString(payload))
 	if err != nil {
 		return nil, fmt.Errorf("error creating stop request: %w", err)
 	}

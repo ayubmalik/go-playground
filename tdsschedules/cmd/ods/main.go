@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"github.com/joho/godotenv"
 	"log/slog"
 	"os"
@@ -28,11 +29,14 @@ func main() {
 	tdsClient := tdsschedules.NewTDSClient(apiKey, carrierCode)
 
 	candidates := getOriginDestinationCandidates(tdsClient)
-	findODSchedules(tdsClient, candidates)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	findODSchedules(ctx, tdsClient, candidates)
 
 }
 
-func findODSchedules(client tdsschedules.TdsClient, candidates <-chan ODPair) {
+func findODSchedules(ctx context.Context, client tdsschedules.TdsClient, candidates <-chan ODPair) {
 	for candidate := range candidates {
 		departureDate := tdsschedules.NextMonday(time.Now())
 		slog.Info("finding schedule for", "departureDate", departureDate, "candidate", candidate)

@@ -32,17 +32,9 @@ func main() {
 
 }
 
-func nextMonday(date time.Time) time.Time {
-	offset := (8 - date.Weekday()) % 7
-	if offset == 0 {
-		offset = 7
-	}
-	return date.Add(24 * time.Hour * time.Duration(offset))
-}
-
 func findODSchedules(client tdsschedules.TdsClient, candidates <-chan ODPair) {
 	for candidate := range candidates {
-		departureDate := nextMonday(time.Now())
+		departureDate := tdsschedules.NextMonday(time.Now())
 		slog.Info("finding schedule for", "departureDate", departureDate, "candidate", candidate)
 		slog.Info("finding next schedule for", "departureDate", departureDate.Add(24*time.Hour))
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/joho/godotenv"
 	"log/slog"
 	"os"
+	"sync"
 	"tdsschedules"
 	"time"
 )
@@ -24,27 +25,61 @@ func main() {
 
 	apiKey := os.Getenv("TDS_API_KEY")
 	carrierCode := os.Getenv("TDS_CARRIER_CODE")
-	slog.Info("got environment variables", "apiKey", apiKey, "carrierCode", carrierCode)
 
+	slog.Info("creating client with", "apiKey", apiKey, "carrierCode", carrierCode)
 	tdsClient := tdsschedules.NewTDSClient(apiKey, carrierCode)
 
-	candidates := getOriginDestinationCandidates(tdsClient)
+	candidateODs := getOriginDestinationCandidates(tdsClient)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	findODSchedules(ctx, tdsClient, candidates)
 
+	findODPairs(ctx, tdsClient, candidateODs)
 }
 
-func findODSchedules(ctx context.Context, client tdsschedules.TdsClient, candidates <-chan ODPair) {
+func findODPairs(ctx context.Context, client tdsschedules.TdsClient, candidates <-chan ODPair) {
 	for candidate := range candidates {
-		departureDate := tdsschedules.NextMonday(time.Now())
-		slog.Info("finding schedule for", "departureDate", departureDate, "candidate", candidate)
-		slog.Info("finding next schedule for", "departureDate", departureDate.Add(24*time.Hour))
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			tryODPair(ctx, client, candidate)
+		}
 	}
 }
 
-// getOriginDestinationCandidates returns a channel of all possible OD combinations
+// TODO error handling
+func tryODPair(ctx context.Context, client tdsschedules.TdsClient, candidate ODPair) {
+	// find a schedule starting on a monday
+	departDate := tdsschedules.NextMonday(time.Now())
+	if scheduleExists(ctx, client, departDate, candidate) {
+		// TODO save OD
+		return
+	}
+
+	// otherwise try other count of week
+	count := 6
+	wg := sync.WaitGroup{}
+	wg.Add(count)
+
+}
+
+func scheduleExists(ctx context.Context, client tdsschedules.TdsClient, departDate time.Time, candidate ODPair) bool {
+	slog.Debug("searching for schedules", "departDate", departDate, "o", candidate.Origin.StationCode, "d", candidate.Destination.StationCode)
+	schedules, err := client.SearchSchedules(ctx, candidate.Origin, candidate.Destination, departDate)
+	if err != nil {
+		slog.Error("searching for schedules", "o", candidate.Origin.StationCode, "d", candidate.Destination.StationCode, "error", err)
+		return false
+	}
+
+	if schedules.IsEmpty() {
+		return false
+	}
+
+	slog.Info("found schedule", "id", schedules.FirstID())
+	return true
+}
+
 func getOriginDestinationCandidates(tdsClient tdsschedules.TdsClient) <-chan ODPair {
 	stops, err := tdsClient.FindStops()
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"time"
@@ -21,9 +22,11 @@ type State struct {
 }
 
 type Stop struct {
-	StopUuid string `json:"stopUuid"`
-	City     City   `json:"city"`
-	State    State  `json:"state"`
+	StopUuid    string `json:"stopUuid"`
+	Name        string `json:"displayBusinessName,omitempty"`
+	StationCode string `json:"stationCode,omitempty"`
+	City        *City  `json:"city,omitempty"`
+	State       *State `json:"state,omitempty"`
 }
 
 type ScheduleQuery struct {
@@ -32,6 +35,8 @@ type ScheduleQuery struct {
 	Origin          Stop           `json:"origin"`
 	Destination     Stop           `json:"destination"`
 	DepartDate      string         `json:"departDate"`
+	IsReturn        bool           `json:"isReturn"`
+	CityMode        bool           `json:"cityMode"`
 }
 
 type ScheduleResult struct {
@@ -48,6 +53,14 @@ func (sr ScheduleResult) FirstOriginDestination() (Stop, Stop) {
 	}
 
 	return sr.ScheduleProducts[0].ScheduleRun.Origin, sr.ScheduleProducts[0].ScheduleRun.Destination
+}
+
+func (sr ScheduleResult) FirstID() string {
+	if sr.IsEmpty() {
+		return ""
+	}
+
+	return sr.ScheduleProducts[0].ScheduleRun.ScheduleUuid
 }
 
 type ScheduleProduct struct {
@@ -92,13 +105,21 @@ type TdsClient struct {
 	carrier string
 }
 
-func (t TdsClient) FindSchedules(ctx context.Context, qry ScheduleQuery) (ScheduleResult, error) {
+func (t TdsClient) SearchSchedules(ctx context.Context, origin Stop, destination Stop, departDate time.Time) (ScheduleResult, error) {
 	var result ScheduleResult
-
-	payload, err := json.Marshal(qry)
+	query := ScheduleQuery{
+		PurchaseType:    "SCHEDULE_BOOK",
+		Origin:          Stop{StopUuid: "35e5b11d-8b14-44a7-8112-cbe297c4005e"},
+		Destination:     Stop{StopUuid: "83be15f2-118b-45d9-839c-c92e841f10fd"},
+		DepartDate:      departDate.Format(time.DateOnly),
+		PassengerCounts: map[string]int{"Adult": 1},
+	}
+	payload, err := json.Marshal(query)
 	if err != nil {
 		return result, err
 	}
+
+	slog.Info("QUERY", "q", string(payload))
 
 	req, err := http.NewRequestWithContext(ctx, "POST", t.baseUrl+"/schedule", bytes.NewBuffer(payload))
 	if err != nil {

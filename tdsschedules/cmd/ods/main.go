@@ -6,7 +6,6 @@ import (
 	"github.com/joho/godotenv"
 	"log/slog"
 	"os"
-	"sync"
 	"tdsschedules"
 	"time"
 )
@@ -57,11 +56,20 @@ func tryODPair(ctx context.Context, client tdsschedules.TdsClient, candidate ODP
 		return
 	}
 
-	// otherwise try other count of week
-	count := 6
-	wg := sync.WaitGroup{}
-	wg.Add(count)
-
+	//// otherwise try other count of week
+	//count := 6
+	//wg := sync.WaitGroup{}
+	//wg.Add(count)
+	//
+	//for i := 0; i < count; i++ {
+	//	go func() {
+	//		defer wg.Done()
+	//		if scheduleExists(ctx, client, departDate.Add(24*time.Hour), candidate) {
+	//			// save OD
+	//		}
+	//	}()
+	//}
+	//wg.Wait()
 }
 
 func scheduleExists(ctx context.Context, client tdsschedules.TdsClient, departDate time.Time, candidate ODPair) bool {
@@ -76,7 +84,13 @@ func scheduleExists(ctx context.Context, client tdsschedules.TdsClient, departDa
 		return false
 	}
 
-	slog.Info("found schedule", "id", schedules.FirstID())
+	slog.Info("found schedule",
+		"day", departDate.Weekday(),
+		"date", departDate.Format(time.DateOnly),
+		"o", candidate.Origin.StationCode,
+		"d", candidate.Destination.StationCode,
+		"id", schedules.FirstID(),
+	)
 	return true
 }
 

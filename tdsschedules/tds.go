@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log/slog"
 	"net"
 	"net/http"
 	"time"
@@ -35,8 +34,6 @@ type ScheduleQuery struct {
 	Origin          Stop           `json:"origin"`
 	Destination     Stop           `json:"destination"`
 	DepartDate      string         `json:"departDate"`
-	IsReturn        bool           `json:"isReturn"`
-	CityMode        bool           `json:"cityMode"`
 }
 
 type ScheduleResult struct {
@@ -109,8 +106,8 @@ func (t TdsClient) SearchSchedules(ctx context.Context, origin Stop, destination
 	var result ScheduleResult
 	query := ScheduleQuery{
 		PurchaseType:    "SCHEDULE_BOOK",
-		Origin:          Stop{StopUuid: "35e5b11d-8b14-44a7-8112-cbe297c4005e"},
-		Destination:     Stop{StopUuid: "83be15f2-118b-45d9-839c-c92e841f10fd"},
+		Origin:          Stop{StopUuid: origin.StopUuid},
+		Destination:     Stop{StopUuid: destination.StopUuid},
 		DepartDate:      departDate.Format(time.DateOnly),
 		PassengerCounts: map[string]int{"Adult": 1},
 	}
@@ -119,9 +116,7 @@ func (t TdsClient) SearchSchedules(ctx context.Context, origin Stop, destination
 		return result, err
 	}
 
-	slog.Info("QUERY", "q", string(payload))
-
-	req, err := http.NewRequestWithContext(ctx, "POST", t.baseUrl+"/schedule", bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, "POST", t.baseUrl+"/v2/schedule", bytes.NewBuffer(payload))
 	if err != nil {
 		return result, err
 	}

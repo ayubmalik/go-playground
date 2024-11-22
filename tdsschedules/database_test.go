@@ -2,6 +2,7 @@ package tdsschedules_test
 
 import (
 	"context"
+	"github.com/golang-migrate/migrate/v4"
 	"github.com/google/go-cmp/cmp"
 	"github.com/jackc/pgx/v5"
 	"github.com/testcontainers/testcontainers-go"
@@ -15,7 +16,7 @@ import (
 func TestStopSummaryDB(t *testing.T) {
 	ctx := context.Background()
 
-	conn, pgContainer, err := startPostgresWithConnString(ctx)
+	conn, pgContainer, err := startPostgresWithMigrations(ctx)
 	if err != nil {
 		t.Fatalf("failed to start container: %s", err)
 	}
@@ -50,7 +51,7 @@ func TestStopSummaryDB(t *testing.T) {
 	})
 }
 
-func startPostgresWithConnString(ctx context.Context) (*pgx.Conn, *postgres.PostgresContainer, error) {
+func startPostgresWithMigrations(ctx context.Context) (*pgx.Conn, *postgres.PostgresContainer, error) {
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:16-alpine",
 		postgres.WithDatabase("tds"),
@@ -76,6 +77,15 @@ func startPostgresWithConnString(ctx context.Context) (*pgx.Conn, *postgres.Post
 
 	if conn != nil {
 		err = conn.Ping(ctx)
+	}
+
+	var m *migrate.Migrate
+	if err == nil {
+		m, err = migrate.New("meh", connString)
+	}
+
+	if m != nil {
+		err = m.Steps(999)
 	}
 
 	return conn, pgContainer, err

@@ -54,6 +54,10 @@ func TestStops(t *testing.T) {
 	})
 }
 
+func TestStopSummaryDB(t *testing.T) {
+	t.Skip("todo")
+}
+
 func startPostgres(ctx context.Context) (*postgres.PostgresContainer, error) {
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:16-alpine",

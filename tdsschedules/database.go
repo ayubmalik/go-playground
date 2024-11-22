@@ -4,10 +4,22 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func NewStopDB(conn *pgx.Conn) *StopDB {
-	return &StopDB{conn}
+type StopSummary struct {
+	ID          string
+	StationName string
+	StationCode string
+	cityName    string
+	StateCode   string
 }
 
-type StopDB struct {
+func NewStopSummaryDB(conn *pgx.Conn) *StopSummaryDB {
+	return &StopSummaryDB{conn}
+}
+
+type StopSummaryDB struct {
 	conn *pgx.Conn
+}
+
+func (db *StopSummaryDB) GetAll() ([]StopSummary, error) {
+	return nil, nil
 }

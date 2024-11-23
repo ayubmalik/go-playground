@@ -3,6 +3,8 @@ package tdsschedules_test
 import (
 	"context"
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/google/go-cmp/cmp"
 	"github.com/jackc/pgx/v5"
 	"github.com/testcontainers/testcontainers-go"
@@ -34,13 +36,15 @@ func TestStopSummaryDB(t *testing.T) {
 
 	db := tdsschedules.NewStopSummaryDB(conn)
 
-	t.Run("all stops", func(t *testing.T) {
-		stops, _ := db.AllStops()
+	t.Run("put and get all stops", func(t *testing.T) {
+
+		db.Put(tdsschedules.StopSummary{ID: "83be15f2-0001-45d9-839c-c92e841f10fd", StationName: "name1", StationCode: "code1", CityName: "city1", StateCode: "01"})
+		stops, _ := db.GetAll()
 
 		want := 3
 		got := len(stops)
 		if len(stops) == 0 {
-			t.Errorf("len(AllStops()) = %v, want %v", got, want)
+			t.Errorf("len(GetAll()) = %v, want %v", got, want)
 		}
 
 		wantStop := tdsschedules.StopSummary{ID: "uuid", StationName: "name", StationCode: "code", CityName: "city", StateCode: "NY"}
@@ -67,7 +71,7 @@ func startPostgresWithMigrations(ctx context.Context) (*pgx.Conn, *postgres.Post
 
 	var connString string
 	if pgContainer != nil {
-		connString, err = pgContainer.ConnectionString(ctx)
+		connString, err = pgContainer.ConnectionString(ctx, "sslmode=disable")
 	}
 
 	var conn *pgx.Conn
@@ -81,11 +85,11 @@ func startPostgresWithMigrations(ctx context.Context) (*pgx.Conn, *postgres.Post
 
 	var m *migrate.Migrate
 	if err == nil {
-		m, err = migrate.New("meh", connString)
+		m, err = migrate.New("file://migrations", connString)
 	}
 
 	if m != nil {
-		err = m.Steps(999)
+		err = m.Steps(2)
 	}
 
 	return conn, pgContainer, err

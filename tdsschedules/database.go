@@ -20,7 +20,7 @@ type StopSummaryDB struct {
 	conn *pgx.Conn
 }
 
-func (db *StopSummaryDB) AllStops() ([]StopSummary, error) {
+func (db *StopSummaryDB) GetAll() ([]StopSummary, error) {
 
 	return []StopSummary{{
 		ID:          "",
@@ -29,4 +29,8 @@ func (db *StopSummaryDB) AllStops() ([]StopSummary, error) {
 		CityName:    "",
 		StateCode:   "",
 	}}, nil
+}
+
+func (db *StopSummaryDB) Put(summary StopSummary) error {
+	
 }

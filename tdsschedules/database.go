@@ -3,11 +3,12 @@ package tdsschedules
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
 type StopSummary struct {
-	ID    string
+	ID    uuid.UUID
 	Name  string
 	Code  string
 	City  string

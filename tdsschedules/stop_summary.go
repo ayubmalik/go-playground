@@ -32,6 +32,7 @@ func (db *StopSummaryDB) GetAll(ctx context.Context) ([]StopSummary, error) {
 	}
 	defer rows.Close()
 
+	// see also pgx.CollectRows())
 	stops := make([]StopSummary, 0)
 	for rows.Next() {
 		stop := StopSummary{}

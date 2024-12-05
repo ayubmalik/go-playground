@@ -4,4 +4,4 @@ CREATE TABLE origin_destinations
     destination UUID REFERENCES stop_summary (id)
 );
 
-CREATE UNIQUE INDEX origin_destinations_origin_idx ON origin_destinations (origin);
+CREATE UNIQUE INDEX origin_destinations_idx ON origin_destinations (origin, destination);

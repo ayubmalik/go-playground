@@ -36,7 +36,6 @@ func (db *StopSummaryDB) GetAll(ctx context.Context) ([]StopSummary, error) {
 		stop := StopSummary{}
 		err := rows.Scan(&stop.ID, &stop.Name, &stop.Code, &stop.City, &stop.State)
 		if err != nil {
-			panic(fmt.Errorf("could not scan stop summary %w", err))
 			return nil, fmt.Errorf("could not scan stop summary %w", err)
 		}
 		stops = append(stops, stop)

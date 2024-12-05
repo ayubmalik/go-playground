@@ -37,20 +37,27 @@ func TestStopSummaryDB(t *testing.T) {
 	db := tdsschedules.NewStopSummaryDB(conn)
 
 	t.Run("put and get all stops", func(t *testing.T) {
-
-		db.Put(tdsschedules.StopSummary{ID: "83be15f2-0001-45d9-839c-c92e841f10fd", StationName: "name1", StationCode: "code1", CityName: "city1", StateCode: "01"})
-		stops, _ := db.GetAll()
-
-		want := 3
-		got := len(stops)
-		if len(stops) == 0 {
-			t.Errorf("len(GetAll()) = %v, want %v", got, want)
+		stops := []tdsschedules.StopSummary{
+			{ID: "00000000-0001-f000-0000-000000000000", Name: "name1", Code: "c1de", City: "city", State: "SS"},
+			{ID: "00000000-0002-f000-0000-000000000000", Name: "name2", Code: "c2de", City: "city", State: "SS"},
+			{ID: "00000000-0003-f000-0000-000000000000", Name: "name3", Code: "c3de", City: "city3", State: "S3"},
 		}
 
-		wantStop := tdsschedules.StopSummary{ID: "uuid", StationName: "name", StationCode: "code", CityName: "city", StateCode: "NY"}
-		gotStop := stops[0]
-		if !cmp.Equal(gotStop, wantStop) {
-			t.Errorf("stop = %v, want = %v", gotStop, wantStop)
+		for i, stop := range stops {
+			if err := db.Put(ctx, stop); err != nil {
+				t.Fatalf("failed to put stop[%d]: %s", i, err)
+			}
+		}
+
+		gotStops, _ := db.GetAll(ctx)
+		if len(gotStops) != len(stops) {
+			t.Errorf("len(GetAll()) = %v, want %v", len(gotStops), len(stops))
+		}
+
+		for i, stop := range gotStops {
+			if !cmp.Equal(stop, stops[i]) {
+				t.Errorf("stop = %v, want = %v", stop, stops[i])
+			}
 		}
 	})
 }

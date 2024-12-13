@@ -116,3 +116,13 @@ func getOriginDestinationCandidates(tdsClient tdsschedules.TdsClient) <-chan ODP
 
 	return candidates
 }
+
+func createPairs(stops []tdsschedules.Stop) []ODPair {
+	pairs := make([]ODPair, 0, len(stops)*(len(stops)-1)/2)
+	for i := 0; i < len(stops); i++ {
+		for j := i + 1; j < len(stops); j++ {
+			pairs = append(pairs, ODPair{stops[i], stops[j]})
+		}
+	}
+	return pairs
+}

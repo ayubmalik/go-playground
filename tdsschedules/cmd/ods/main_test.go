@@ -1,7 +1,8 @@
-package main_test
+package main
 
 import (
 	"context"
+	"gotest.tools/v3/assert"
 	"os"
 	"tdsschedules"
 	"testing"
@@ -25,4 +26,18 @@ func TestSchedules(t *testing.T) {
 		t.Fatalf("failed to search schedules: %v", err)
 	}
 	t.Logf("schedules = %v", schedules.IsEmpty())
+}
+
+func TestCreatePairs(t *testing.T) {
+	t.Run("create pairs", func(t *testing.T) {
+		stops := []tdsschedules.Stop{
+			{StopUuid: "a"}, {StopUuid: "b"}, {StopUuid: "c"}, {StopUuid: "d"}, {StopUuid: "e"},
+		}
+
+		pairs := createPairs(stops)
+		for _, pair := range pairs {
+			t.Logf("pair = %v", pair)
+		}
+		assert.Equal(t, len(pairs), 10)
+	})
 }

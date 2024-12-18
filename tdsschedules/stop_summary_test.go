@@ -51,10 +51,56 @@ func TestStopSummaryDB(t *testing.T) {
 		}
 
 		for i, stop := range gotStops {
-			t.Logf("stop[%d]: %v", i, stop)
 			if !cmp.Equal(stop, stops[i]) {
 				t.Errorf("stop = %v, want = %v", stop, stops[i])
 			}
 		}
 	})
+
+	t.Run("get by id", func(t *testing.T) {
+		id := uuid.New()
+		stops := []tdsschedules.StopSummary{
+			{ID: id, Name: "nameA", Code: "cAde", City: "city", State: "SS"},
+			{ID: uuid.New(), Name: "nameB", Code: "cBde", City: "city", State: "SS"},
+		}
+
+		for i, stop := range stops {
+			if err := db.Put(ctx, stop); err != nil {
+				t.Fatalf("failed to put stop[%d]: %s", i, err)
+			}
+		}
+
+		gotStop, _ := db.Get(ctx, id)
+		wantStop := stops[0]
+		if !cmp.Equal(gotStop, wantStop) {
+			t.Errorf("stop = %v, want = %v", gotStop, wantStop)
+		}
+	})
+
+	t.Run("delete by id", func(t *testing.T) {
+		id := uuid.New()
+		stops := []tdsschedules.StopSummary{
+			{ID: id, Name: "nameC", Code: "cCde", City: "city", State: "SS"},
+			{ID: uuid.New(), Name: "nameD", Code: "cDde", City: "city", State: "SS"},
+		}
+
+		for i, stop := range stops {
+			if err := db.Put(ctx, stop); err != nil {
+				t.Fatalf("failed to put stop[%d]: %s", i, err)
+			}
+		}
+
+		err = db.Delete(ctx, id)
+		if err != nil {
+			t.Errorf("failed to delete: %s", err)
+		}
+
+		gotStops, _ := db.GetAll(ctx)
+		for i, stop := range gotStops {
+			if stop.ID == id {
+				t.Errorf("got stop[%d].id = %v, want stop to not exist", i, id)
+			}
+		}
+	})
+
 }

@@ -61,3 +61,28 @@ func (db *StopSummaryDB) Put(ctx context.Context, stop StopSummary) error {
 	}
 	return nil
 }
+
+func (db *StopSummaryDB) Get(ctx context.Context, id uuid.UUID) (StopSummary, error) {
+	query := `SELECT id, station_name, station_code, city_name, state_code 
+			  FROM stop_summary
+			  WHERE id = @id
+			  `
+	row := db.conn.QueryRow(ctx, query, pgx.NamedArgs{
+		"id": id.String(),
+	})
+
+	var stop StopSummary
+	err := row.Scan(&stop.ID, &stop.Name, &stop.Code, &stop.City, &stop.State)
+
+	return stop, err
+}
+
+func (db *StopSummaryDB) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `DELETE FROM stop_summary WHERE id = @id`
+
+	_, err := db.conn.Exec(ctx, query, pgx.NamedArgs{
+		"id": id.String(),
+	})
+
+	return err
+}

@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 	"log/slog"
 	"os"
@@ -24,13 +25,16 @@ func main() {
 
 	apiKey := os.Getenv("TDS_API_KEY")
 	carrierCode := os.Getenv("TDS_CARRIER_CODE")
+	dbUrl := os.Getenv("DB_URL")
+
+	ctx, cancel := context.WithCancel(context.Background())
+	conn, err := pgx.Connect(ctx, dbUrl)
 
 	slog.Info("creating client with", "apiKey", apiKey, "carrierCode", carrierCode)
 	tdsClient := tdsschedules.NewTDSClient(apiKey, carrierCode)
 
 	candidateODs := getOriginDestinationCandidates(tdsClient)
 
-	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	findODPairs(ctx, tdsClient, candidateODs)
@@ -99,8 +103,11 @@ func getOriginDestinationCandidates(tdsClient tdsschedules.TdsClient) <-chan ODP
 	if err != nil {
 		slog.Error("Error finding stops", "error", err)
 	}
+	slog.Info("saving found stops", "count", len(stops))
+	for _, origin := range stops {
+		db.Put()
+	}
 
-	slog.Info("found stops", "count", len(stops))
 	candidates := make(chan ODPair)
 
 	go func() {

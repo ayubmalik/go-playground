@@ -45,18 +45,17 @@ func main() {
 	slog.Info("creating client with", "apiKey", apiKey, "carrierCode", carrierCode)
 	tdsClient := tdsschedules.NewTDSClient(apiKey, carrierCode)
 	stopSummaryDB := tdsschedules.NewStopSummaryDB(conn)
+	originDestinationDB := tdsschedules.NewOriginDestinationDB(conn)
 
-	candidateODs := getOriginDestinationCandidates(ctx, tdsClient, stopSummaryDB)
-
-	odDB := tdsschedules.NewOriginDestinationDB(conn)
 	slog.Info("deleting OD pairs from database")
-
-	err = odDB.DeleteAll(ctx)
+	err = originDestinationDB.DeleteAll(ctx)
 	if err != nil {
 		slog.Error("Error deleting all OD pairs", "error", err)
 		os.Exit(1)
 	}
-	findODPairs(ctx, tdsClient, candidateODs, odDB)
+
+	candidateODs := getOriginDestinationCandidates(ctx, tdsClient, stopSummaryDB)
+	findODPairs(ctx, tdsClient, candidateODs, originDestinationDB)
 }
 
 func setLogLevel() {

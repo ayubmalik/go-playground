@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"sync"
 	"tdsschedules"
 	"time"
 )
@@ -43,12 +44,12 @@ func main() {
 
 	slog.Info("creating client with", "apiKey", apiKey, "carrierCode", carrierCode)
 	tdsClient := tdsschedules.NewTDSClient(apiKey, carrierCode)
-
 	stopSummaryDB := tdsschedules.NewStopSummaryDB(conn)
 
 	candidateODs := getOriginDestinationCandidates(ctx, tdsClient, stopSummaryDB)
 
-	findODPairs(ctx, tdsClient, candidateODs)
+	odDB := tdsschedules.NewOriginDestinationDB(conn)
+	findODPairs(ctx, tdsClient, candidateODs, odDB)
 }
 
 func setLogLevel() {
@@ -68,40 +69,75 @@ func setLogLevel() {
 	})))
 }
 
-func findODPairs(ctx context.Context, client tdsschedules.TdsClient, candidates <-chan ODPair) {
+func findODPairs(ctx context.Context, client tdsschedules.TdsClient, candidates <-chan ODPair, odDB *tdsschedules.OrigDestinationDB) {
 	for candidate := range candidates {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			tryODPair(ctx, client, candidate)
+			tryODPair(ctx, client, candidate, odDB)
 		}
 	}
 }
 
 // TODO error handling
-func tryODPair(ctx context.Context, client tdsschedules.TdsClient, candidate ODPair) {
+func tryODPair(ctx context.Context, client tdsschedules.TdsClient, candidate ODPair, db *tdsschedules.OrigDestinationDB) {
 	// find a schedule starting on a monday
 	departDate := tdsschedules.NextMonday(time.Now())
+	slog.Info("trying OD pair", "departDate", departDate, "origin", candidate.Origin, "destination", candidate.Destination)
 	if scheduleExists(ctx, client, departDate, candidate) {
-		// TODO save OD
+		slog.Info("found OD pair", "departDate", departDate, "origin", candidate.Origin, "destination", candidate.Destination)
+		od := createOD(candidate)
+		err := db.Put(ctx, od)
+		if err != nil {
+			slog.Error("Error putting OD to DB", "error", err)
+		}
 		return
 	}
 
-	//// otherwise try other count of week
-	//count := 6
-	//wg := sync.WaitGroup{}
-	//wg.Add(count)
-	//
-	//for i := 0; i < count; i++ {
-	//	go func() {
-	//		defer wg.Done()
-	//		if scheduleExists(ctx, client, departDate.Add(24*time.Hour), candidate) {
-	//			// save OD
-	//		}
-	//	}()
-	//}
-	//wg.Wait()
+	// otherwise try other count of week
+	count := 6
+	wg := sync.WaitGroup{}
+	wg.Add(count)
+
+	ctx, cancel := context.WithCancel(ctx)
+	for i := 1; i <= count; i++ {
+		go func() {
+			defer wg.Done()
+			slog.Info("trying non monday OD pair", "departDate", departDate, "origin", candidate.Origin, "destination", candidate.Destination)
+			if scheduleExists(ctx, client, departDate.Add(24*time.Duration(i)*time.Hour), candidate) {
+				slog.Info("found OD pair", "departDate", departDate, "origin", candidate.Origin, "destination", candidate.Destination)
+				od := createOD(candidate)
+				err := db.Put(ctx, od)
+				if err != nil {
+					slog.Error("Error putting OD to DB", "error", err)
+				}
+				cancel()
+			}
+		}()
+	}
+	wg.Wait()
+	cancel()
+}
+
+func createOD(candidate ODPair) tdsschedules.OriginDestination {
+	od := tdsschedules.OriginDestination{
+		Origin: tdsschedules.StopSummary{
+			ID:    candidate.Origin.StopUuid,
+			Name:  candidate.Origin.Name,
+			Code:  candidate.Origin.StationCode,
+			City:  candidate.Origin.City.Name,
+			State: candidate.Origin.State.Abbreviation,
+		},
+		Destination: tdsschedules.StopSummary{
+			ID:    candidate.Destination.StopUuid,
+			Name:  candidate.Destination.Name,
+			Code:  candidate.Destination.StationCode,
+			City:  candidate.Destination.City.Name,
+			State: candidate.Destination.State.Abbreviation,
+		},
+	}
+	return od
 }
 
 func scheduleExists(ctx context.Context, client tdsschedules.TdsClient, departDate time.Time, candidate ODPair) bool {
@@ -131,6 +167,7 @@ func getOriginDestinationCandidates(ctx context.Context, tdsClient tdsschedules.
 	if err != nil {
 		slog.Error("Error finding stops", "error", err)
 	}
+
 	slog.Info("saving found stops", "count", len(stops))
 	for _, stop := range stops {
 		slog.Debug("delete stop", "stop.id", stop.StopUuid, "stop.name", stop.Name, "stop.code", stop.StationCode)

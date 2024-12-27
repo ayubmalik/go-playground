@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"log/slog"
@@ -159,7 +160,7 @@ func createOD(candidate ODPair) tdsschedules.OriginDestination {
 func scheduleExists(ctx context.Context, client tdsschedules.TdsClient, departDate time.Time, candidate ODPair) bool {
 	slog.Debug("searching for schedules", "departDate", departDate, "o", candidate.Origin.StationCode, "d", candidate.Destination.StationCode)
 	schedules, err := client.SearchSchedules(ctx, candidate.Origin, candidate.Destination, departDate)
-	if err != nil {
+	if err != nil && !errors.Is(err, context.Canceled) {
 		slog.Error("searching for schedules", "o", candidate.Origin.StationCode, "d", candidate.Destination.StationCode, "error", err)
 		return false
 	}

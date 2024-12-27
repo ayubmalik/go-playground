@@ -200,12 +200,9 @@ func getOriginDestinationCandidates(ctx context.Context, tdsClient tdsschedules.
 
 	go func() {
 		defer close(candidates)
-		for _, origin := range stops {
-			for _, destination := range stops {
-				if origin.StopUuid != destination.StopUuid {
-					candidates <- ODPair{origin, destination}
-				}
-			}
+		pairs := createPairs(stops)
+		for _, pair := range pairs {
+			candidates <- pair
 		}
 	}()
 

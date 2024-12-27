@@ -3,7 +3,7 @@ package main
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"log/slog"
 	"os"
@@ -33,14 +33,14 @@ func main() {
 	dbUrl := os.Getenv("DATABASE_URL")
 
 	ctx, cancel := context.WithCancel(context.Background())
-	conn, err := pgx.Connect(ctx, dbUrl)
+	conn, err := pgxpool.New(ctx, dbUrl)
 	if err != nil || conn.Ping(ctx) != nil {
 		slog.Error("Error connecting to database", "error", err)
 		os.Exit(1)
 	}
 	defer func() {
 		cancel()
-		_ = conn.Close(ctx)
+		conn.Close()
 	}()
 
 	slog.Info("creating client with", "apiKey", apiKey, "carrierCode", carrierCode)

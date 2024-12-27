@@ -20,7 +20,7 @@ func TestStopSummaryDB(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		err := conn.Close(ctx)
+		conn.Close()
 		if err != nil {
 			t.Logf("Error closing connection: %v", err)
 		}

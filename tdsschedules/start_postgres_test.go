@@ -3,14 +3,14 @@ package tdsschedules_test
 import (
 	"context"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"time"
 )
 
-func startPostgresWithMigrations(ctx context.Context) (*pgx.Conn, *postgres.PostgresContainer, error) {
+func startPostgresWithMigrations(ctx context.Context) (*pgxpool.Pool, *postgres.PostgresContainer, error) {
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:16-alpine",
 		postgres.WithDatabase("tds"),
@@ -29,9 +29,9 @@ func startPostgresWithMigrations(ctx context.Context) (*pgx.Conn, *postgres.Post
 		connString, err = pgContainer.ConnectionString(ctx, "sslmode=disable")
 	}
 
-	var conn *pgx.Conn
+	var conn *pgxpool.Pool
 	if connString != "" {
-		conn, err = pgx.Connect(ctx, connString)
+		conn, err = pgxpool.New(ctx, connString)
 	}
 
 	if conn != nil {

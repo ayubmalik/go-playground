@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 )
 
@@ -15,12 +16,12 @@ type StopSummary struct {
 	State string
 }
 
-func NewStopSummaryDB(conn *pgx.Conn) *StopSummaryDB {
+func NewStopSummaryDB(conn *pgxpool.Pool) *StopSummaryDB {
 	return &StopSummaryDB{conn}
 }
 
 type StopSummaryDB struct {
-	conn *pgx.Conn
+	conn *pgxpool.Pool
 }
 
 func (db *StopSummaryDB) GetAll(ctx context.Context) ([]StopSummary, error) {

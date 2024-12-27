@@ -6,7 +6,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
 	"tdsschedules"
 	"testing"
@@ -21,11 +21,7 @@ func TestOrigDestinationDB(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		err := conn.Close(ctx)
-		if err != nil {
-			t.Logf("Error closing connection: %v", err)
-		}
-
+		conn.Close()
 		if err := testcontainers.TerminateContainer(pgContainer); err != nil {
 			t.Fatalf("failed to terminate container: %s", err)
 		}
@@ -74,7 +70,7 @@ func TestOrigDestinationDB(t *testing.T) {
 	})
 }
 
-func insertStops(t *testing.T, ctx context.Context, conn *pgx.Conn, stops []tdsschedules.StopSummary) {
+func insertStops(t *testing.T, ctx context.Context, conn *pgxpool.Pool, stops []tdsschedules.StopSummary) {
 	t.Helper()
 	stopsDB := tdsschedules.NewStopSummaryDB(conn)
 	for i, stop := range stops {

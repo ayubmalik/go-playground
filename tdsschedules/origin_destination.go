@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 )
 
@@ -12,12 +13,12 @@ type OriginDestination struct {
 	Destination StopSummary
 }
 
-func NewOriginDestinationDB(conn *pgx.Conn) *OrigDestinationDB {
+func NewOriginDestinationDB(conn *pgxpool.Pool) *OrigDestinationDB {
 	return &OrigDestinationDB{conn}
 }
 
 type OrigDestinationDB struct {
-	conn *pgx.Conn
+	conn *pgxpool.Pool
 }
 
 func (db *OrigDestinationDB) GetAll(ctx context.Context) ([]OriginDestination, error) {

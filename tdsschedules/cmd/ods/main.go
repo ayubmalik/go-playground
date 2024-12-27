@@ -7,6 +7,8 @@ import (
 	"github.com/joho/godotenv"
 	"log/slog"
 	"os"
+	"slices"
+	"strings"
 	"sync"
 	"tdsschedules"
 	"time"
@@ -210,6 +212,10 @@ func getOriginDestinationCandidates(ctx context.Context, tdsClient tdsschedules.
 }
 
 func createPairs(stops []tdsschedules.Stop) []ODPair {
+	slices.SortFunc(stops, func(l, r tdsschedules.Stop) int {
+		return strings.Compare(l.StationCode, r.StationCode)
+	})
+
 	pairs := make([]ODPair, 0, len(stops)*(len(stops)-1)/2)
 	for i := 0; i < len(stops); i++ {
 		for j := i + 1; j < len(stops); j++ {

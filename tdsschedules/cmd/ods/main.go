@@ -24,9 +24,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	setLogLevel()
+
 	apiKey := os.Getenv("TDS_API_KEY")
 	carrierCode := os.Getenv("TDS_CARRIER_CODE")
-	dbUrl := os.Getenv("LOCAL_DATABASE_URL")
+	dbUrl := os.Getenv("DATABASE_URL")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	conn, err := pgx.Connect(ctx, dbUrl)
@@ -47,6 +49,23 @@ func main() {
 	candidateODs := getOriginDestinationCandidates(ctx, tdsClient, stopSummaryDB)
 
 	findODPairs(ctx, tdsClient, candidateODs)
+}
+
+func setLogLevel() {
+	levelName := "INFO"
+	if level := os.Getenv("LOG_LEVEL"); level != "" {
+		levelName = level
+	}
+
+	var level slog.Level
+	err := level.UnmarshalText([]byte(levelName))
+	if err != nil {
+		slog.Error("Error unmarshalling LOG_LEVEL", "error", err)
+		os.Exit(1)
+	}
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: level,
+	})))
 }
 
 func findODPairs(ctx context.Context, client tdsschedules.TdsClient, candidates <-chan ODPair) {
@@ -114,7 +133,7 @@ func getOriginDestinationCandidates(ctx context.Context, tdsClient tdsschedules.
 	}
 	slog.Info("saving found stops", "count", len(stops))
 	for _, stop := range stops {
-		slog.Info("delete stop", "stop.id", stop.StopUuid, "stop.name", stop.Name, "stop.code", stop.StationCode)
+		slog.Debug("delete stop", "stop.id", stop.StopUuid, "stop.name", stop.Name, "stop.code", stop.StationCode)
 		err = db.Delete(ctx, strings.TrimSpace(stop.StopUuid))
 		if err != nil {
 			slog.Error("Error deleting stop", "error", err)

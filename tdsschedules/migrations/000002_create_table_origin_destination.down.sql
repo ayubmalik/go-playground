@@ -1,3 +1,3 @@
-DROP INDEX origin_destination_origin_idx;
+DROP INDEX origin_destination_idx;
 
 DROP TABLE origin_destination;

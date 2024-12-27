@@ -49,7 +49,7 @@ func (db *StopSummaryDB) GetAll(ctx context.Context) ([]StopSummary, error) {
 func (db *StopSummaryDB) Put(ctx context.Context, stop StopSummary) error {
 	query := `INSERT INTO stop_summary(id, station_name, station_code, city_name, state_code)
 			  VALUES (@id, @station_name, @station_code, @city_name, @state_code)`
-	_, err := db.conn.Exec(ctx, query, pgx.NamedArgs{
+	t, err := db.conn.Exec(ctx, query, pgx.NamedArgs{
 		"id":           stop.ID,
 		"station_name": stop.Name,
 		"station_code": stop.Code,
@@ -59,6 +59,7 @@ func (db *StopSummaryDB) Put(ctx context.Context, stop StopSummary) error {
 	if err != nil {
 		return fmt.Errorf("could not insert stop summary: %w", err)
 	}
+	slog.Debug("put stop", "count", t.RowsAffected())
 	return nil
 }
 
@@ -84,7 +85,7 @@ func (db *StopSummaryDB) Delete(ctx context.Context, uuid string) error {
 	if err != nil {
 		return fmt.Errorf("could not delete stop summary %w", err)
 	}
-	slog.Info("exec", "count", t.RowsAffected())
+	slog.Debug("delete stop", "count", t.RowsAffected())
 
 	return nil
 }

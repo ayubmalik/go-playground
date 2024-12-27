@@ -44,7 +44,6 @@ func (db *OrigDestinationDB) GetAll(ctx context.Context) ([]OriginDestination, e
 		ods = append(ods, od)
 	}
 	return ods, err
-
 }
 
 func (db *OrigDestinationDB) Put(ctx context.Context, od OriginDestination) error {
@@ -69,9 +68,9 @@ func (db *OrigDestinationDB) DeleteAll(ctx context.Context) error {
 	query := `DELETE FROM origin_destination WHERE TRUE`
 	t, err := db.conn.Exec(ctx, query)
 	if err != nil {
-		return fmt.Errorf("could not insert origin destination: %w", err)
+		return fmt.Errorf("could not delete all origin destinations: %w", err)
 	}
 
-	slog.Debug("delete origin_destination", "count", t.RowsAffected())
+	slog.Debug("delete all origin_destinations", "count", t.RowsAffected())
 	return nil
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/joho/godotenv"
 	"log/slog"
 	"os"
-	"strings"
 	"sync"
 	"tdsschedules"
 	"time"
@@ -44,16 +43,24 @@ func main() {
 
 	slog.Info("creating client with", "apiKey", apiKey, "carrierCode", carrierCode)
 	tdsClient := tdsschedules.NewTDSClient(apiKey, carrierCode)
+
 	stopSummaryDB := tdsschedules.NewStopSummaryDB(conn)
 	originDestinationDB := tdsschedules.NewOriginDestinationDB(conn)
 
-	slog.Info("deleting OD pairs from database")
+	slog.Info("deleting OD pairs")
 	err = originDestinationDB.DeleteAll(ctx)
 	if err != nil {
 		slog.Error("Error deleting all OD pairs", "error", err)
 		os.Exit(1)
 	}
 
+	slog.Info("deleting all stop summaries")
+	err = stopSummaryDB.DeleteAll(ctx)
+	if err != nil {
+		slog.Error("Error deleting all stop summaries", "error", err)
+		os.Exit(1)
+	}
+	
 	candidateODs := getOriginDestinationCandidates(ctx, tdsClient, stopSummaryDB)
 	findODPairs(ctx, tdsClient, candidateODs, originDestinationDB)
 }
@@ -176,13 +183,6 @@ func getOriginDestinationCandidates(ctx context.Context, tdsClient tdsschedules.
 
 	slog.Info("saving found stops", "count", len(stops))
 	for _, stop := range stops {
-		slog.Debug("delete stop", "stop.id", stop.StopUuid, "stop.name", stop.Name, "stop.code", stop.StationCode)
-		err = db.Delete(ctx, strings.TrimSpace(stop.StopUuid))
-		if err != nil {
-			slog.Error("Error deleting stop", "error", err)
-			os.Exit(1)
-		}
-
 		err = db.Put(ctx, tdsschedules.StopSummary{
 			ID:    stop.StopUuid,
 			Name:  stop.Name,

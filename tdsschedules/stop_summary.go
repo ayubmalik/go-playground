@@ -89,3 +89,15 @@ func (db *StopSummaryDB) Delete(ctx context.Context, uuid string) error {
 
 	return nil
 }
+
+// TODO(test)
+func (db *StopSummaryDB) DeleteAll(ctx context.Context) error {
+	query := `DELETE FROM stop_summary WHERE TRUE`
+	t, err := db.conn.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("could not delete all stop summaries %w", err)
+	}
+
+	slog.Debug("delete stop summaries", "count", t.RowsAffected())
+	return nil
+}

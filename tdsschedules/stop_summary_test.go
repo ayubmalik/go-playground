@@ -34,9 +34,9 @@ func TestStopSummaryDB(t *testing.T) {
 
 	t.Run("put and get all stops", func(t *testing.T) {
 		stops := []tdsschedules.StopSummary{
-			{ID: uuid.New(), Name: "name1", Code: "c1de", City: "city", State: "SS"},
-			{ID: uuid.New(), Name: "name2", Code: "c2de", City: "city", State: "SS"},
-			{ID: uuid.New(), Name: "name3", Code: "c3de", City: "city3", State: "S3"},
+			{ID: uuid.New().String(), Name: "name1", Code: "c1de", City: "city", State: "SS"},
+			{ID: uuid.New().String(), Name: "name2", Code: "c2de", City: "city", State: "SS"},
+			{ID: uuid.New().String(), Name: "name3", Code: "c3de", City: "city3", State: "S3"},
 		}
 
 		for i, stop := range stops {
@@ -58,10 +58,10 @@ func TestStopSummaryDB(t *testing.T) {
 	})
 
 	t.Run("get by id", func(t *testing.T) {
-		id := uuid.New()
+		id := uuid.New().String()
 		stops := []tdsschedules.StopSummary{
 			{ID: id, Name: "nameA", Code: "cAde", City: "city", State: "SS"},
-			{ID: uuid.New(), Name: "nameB", Code: "cBde", City: "city", State: "SS"},
+			{ID: uuid.New().String(), Name: "nameB", Code: "cBde", City: "city", State: "SS"},
 		}
 
 		for i, stop := range stops {
@@ -78,10 +78,10 @@ func TestStopSummaryDB(t *testing.T) {
 	})
 
 	t.Run("delete by id", func(t *testing.T) {
-		id := uuid.New()
+		id := uuid.New().String()
 		stops := []tdsschedules.StopSummary{
 			{ID: id, Name: "nameC", Code: "cCde", City: "city", State: "SS"},
-			{ID: uuid.New(), Name: "nameD", Code: "cDde", City: "city", State: "SS"},
+			{ID: uuid.New().String(), Name: "nameD", Code: "cDde", City: "city", State: "SS"},
 		}
 
 		for i, stop := range stops {

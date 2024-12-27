@@ -20,7 +20,11 @@ type OrigDestinationDB struct {
 }
 
 func (db *OrigDestinationDB) GetAll(ctx context.Context) ([]OriginDestination, error) {
-	query := `SELECT *  FROM origin_destination`
+	query := `SELECT origin.id, origin.station_name, origin.station_code, origin.city_name, origin.state_code,
+                     destination.id, destination.station_name, destination.station_code, destination.city_name, destination.state_code
+              FROM origin_destination od
+                   JOIN stop_summary origin ON od.origin = origin.id
+                   JOIN stop_summary destination ON od.destination = destination.id`
 
 	rows, err := db.conn.Query(ctx, query)
 	if err != nil {
@@ -28,8 +32,16 @@ func (db *OrigDestinationDB) GetAll(ctx context.Context) ([]OriginDestination, e
 	}
 	defer rows.Close()
 
-	// see also pgx.CollectRows())
-	ods, err := pgx.CollectRows(rows, pgx.RowToStructByName[OriginDestination])
+	var ods []OriginDestination
+	// see also pgx.CollectRows
+	for rows.Next() {
+		var od OriginDestination
+		if err := rows.Scan(&od.Origin.ID, &od.Origin.Name, &od.Origin.Code, &od.Origin.City, &od.Origin.State,
+			&od.Destination.ID, &od.Destination.Name, &od.Destination.Code, &od.Destination.City, &od.Destination.State); err != nil {
+			return nil, fmt.Errorf("could not scan stop summary %w", err)
+		}
+		ods = append(ods, od)
+	}
 	return ods, err
 
 }

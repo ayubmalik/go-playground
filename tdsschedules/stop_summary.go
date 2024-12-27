@@ -3,12 +3,12 @@ package tdsschedules
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"log/slog"
 )
 
 type StopSummary struct {
-	ID    uuid.UUID
+	ID    string
 	Name  string
 	Code  string
 	City  string
@@ -62,13 +62,13 @@ func (db *StopSummaryDB) Put(ctx context.Context, stop StopSummary) error {
 	return nil
 }
 
-func (db *StopSummaryDB) Get(ctx context.Context, id uuid.UUID) (StopSummary, error) {
+func (db *StopSummaryDB) Get(ctx context.Context, uuid string) (StopSummary, error) {
 	query := `SELECT id, station_name, station_code, city_name, state_code 
 			  FROM stop_summary
 			  WHERE id = @id
 			  `
 	row := db.conn.QueryRow(ctx, query, pgx.NamedArgs{
-		"id": id.String(),
+		"id": uuid,
 	})
 
 	var stop StopSummary
@@ -77,12 +77,14 @@ func (db *StopSummaryDB) Get(ctx context.Context, id uuid.UUID) (StopSummary, er
 	return stop, err
 }
 
-func (db *StopSummaryDB) Delete(ctx context.Context, id uuid.UUID) error {
-	query := `DELETE FROM stop_summary WHERE id = @id`
+func (db *StopSummaryDB) Delete(ctx context.Context, uuid string) error {
+	query := `DELETE FROM stop_summary WHERE id = $1`
 
-	_, err := db.conn.Exec(ctx, query, pgx.NamedArgs{
-		"id": id.String(),
-	})
+	t, err := db.conn.Exec(ctx, query, uuid)
+	if err != nil {
+		return fmt.Errorf("could not delete stop summary %w", err)
+	}
+	slog.Info("exec", "count", t.RowsAffected())
 
-	return err
+	return nil
 }

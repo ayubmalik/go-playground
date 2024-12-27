@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"log/slog"
 	"os"
+	"strings"
 	"tdsschedules"
 	"time"
 )
@@ -25,17 +26,25 @@ func main() {
 
 	apiKey := os.Getenv("TDS_API_KEY")
 	carrierCode := os.Getenv("TDS_CARRIER_CODE")
-	dbUrl := os.Getenv("DB_URL")
+	dbUrl := os.Getenv("LOCAL_DATABASE_URL")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	conn, err := pgx.Connect(ctx, dbUrl)
+	if err != nil || conn.Ping(ctx) != nil {
+		slog.Error("Error connecting to database", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		cancel()
+		_ = conn.Close(ctx)
+	}()
 
 	slog.Info("creating client with", "apiKey", apiKey, "carrierCode", carrierCode)
 	tdsClient := tdsschedules.NewTDSClient(apiKey, carrierCode)
 
-	candidateODs := getOriginDestinationCandidates(tdsClient)
+	stopSummaryDB := tdsschedules.NewStopSummaryDB(conn)
 
-	defer cancel()
+	candidateODs := getOriginDestinationCandidates(ctx, tdsClient, stopSummaryDB)
 
 	findODPairs(ctx, tdsClient, candidateODs)
 }
@@ -98,14 +107,30 @@ func scheduleExists(ctx context.Context, client tdsschedules.TdsClient, departDa
 	return true
 }
 
-func getOriginDestinationCandidates(tdsClient tdsschedules.TdsClient) <-chan ODPair {
+func getOriginDestinationCandidates(ctx context.Context, tdsClient tdsschedules.TdsClient, db *tdsschedules.StopSummaryDB) <-chan ODPair {
 	stops, err := tdsClient.FindStops()
 	if err != nil {
 		slog.Error("Error finding stops", "error", err)
 	}
 	slog.Info("saving found stops", "count", len(stops))
-	for _, origin := range stops {
-		db.Put()
+	for _, stop := range stops {
+		slog.Info("delete stop", "stop.id", stop.StopUuid, "stop.name", stop.Name, "stop.code", stop.StationCode)
+		err = db.Delete(ctx, strings.TrimSpace(stop.StopUuid))
+		if err != nil {
+			slog.Error("Error deleting stop", "error", err)
+			os.Exit(1)
+		}
+
+		err = db.Put(ctx, tdsschedules.StopSummary{
+			ID:    stop.StopUuid,
+			Name:  stop.Name,
+			Code:  stop.StationCode,
+			City:  stop.City.Name,
+			State: stop.State.Abbreviation,
+		})
+		if err != nil {
+			slog.Error("Error saving stop summary", "error", err, "stop.id", stop.StopUuid, "stop.name", stop.Name, "stop.city", stop.City.Name)
+		}
 	}
 
 	candidates := make(chan ODPair)

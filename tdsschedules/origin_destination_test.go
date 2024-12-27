@@ -32,9 +32,9 @@ func TestOrigDestinationDB(t *testing.T) {
 	})
 
 	stops := []tdsschedules.StopSummary{
-		{ID: uuid.New(), Name: "name1", Code: "c1de", City: "city", State: "SS"},
-		{ID: uuid.New(), Name: "name2", Code: "c2de", City: "city", State: "SS"},
-		{ID: uuid.New(), Name: "name3", Code: "c3de", City: "city", State: "SS"},
+		{ID: uuid.New().String(), Name: "name1", Code: "c1de", City: "city", State: "SS"},
+		{ID: uuid.New().String(), Name: "name2", Code: "c2de", City: "city", State: "SS"},
+		{ID: uuid.New().String(), Name: "name3", Code: "c3de", City: "city", State: "SS"},
 	}
 
 	insertStops(t, ctx, conn, stops)

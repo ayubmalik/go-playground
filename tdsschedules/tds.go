@@ -22,7 +22,7 @@ type State struct {
 
 type Stop struct {
 	StopUuid    string `json:"stopUuid"`
-	Name        string `json:"displayBusinessName,omitempty"`
+	Name        string `json:"stationName,omitempty"`
 	StationCode string `json:"stationCode,omitempty"`
 	City        *City  `json:"city,omitempty"`
 	State       *State `json:"state,omitempty"`

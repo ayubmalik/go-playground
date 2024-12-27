@@ -49,6 +49,13 @@ func main() {
 	candidateODs := getOriginDestinationCandidates(ctx, tdsClient, stopSummaryDB)
 
 	odDB := tdsschedules.NewOriginDestinationDB(conn)
+	slog.Info("deleting OD pairs from database")
+
+	err = odDB.DeleteAll(ctx)
+	if err != nil {
+		slog.Error("Error deleting all OD pairs", "error", err)
+		os.Exit(1)
+	}
 	findODPairs(ctx, tdsClient, candidateODs, odDB)
 }
 
@@ -69,13 +76,13 @@ func setLogLevel() {
 	})))
 }
 
-func findODPairs(ctx context.Context, client tdsschedules.TdsClient, candidates <-chan ODPair, odDB *tdsschedules.OrigDestinationDB) {
+func findODPairs(ctx context.Context, client tdsschedules.TdsClient, candidates <-chan ODPair, db *tdsschedules.OrigDestinationDB) {
 	for candidate := range candidates {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			tryODPair(ctx, client, candidate, odDB)
+			tryODPair(ctx, client, candidate, db)
 		}
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"log/slog"
 )
 
 type OriginDestination struct {
@@ -52,13 +53,25 @@ func (db *OrigDestinationDB) Put(ctx context.Context, od OriginDestination) erro
 			  ON CONFLICT(origin, destination) 
 			  DO NOTHING`
 
-	_, err := db.conn.Exec(ctx, query, pgx.NamedArgs{
+	t, err := db.conn.Exec(ctx, query, pgx.NamedArgs{
 		"origin":      od.Origin.ID,
 		"destination": od.Destination.ID,
 	})
 	if err != nil {
 		return fmt.Errorf("could not insert origin destination: %w", err)
 	}
+	slog.Debug("put origin_destination", "count", t.RowsAffected())
 	return nil
+}
 
+// TODO(test)
+func (db *OrigDestinationDB) DeleteAll(ctx context.Context) error {
+	query := `DELETE FROM origin_destination WHERE TRUE`
+	t, err := db.conn.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("could not insert origin destination: %w", err)
+	}
+
+	slog.Debug("delete origin_destination", "count", t.RowsAffected())
+	return nil
 }

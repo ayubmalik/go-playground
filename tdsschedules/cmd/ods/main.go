@@ -116,7 +116,7 @@ func tryODPair(ctx context.Context, client tdsschedules.TdsClient, candidate ODP
 	wg := sync.WaitGroup{}
 	wg.Add(count)
 
-	ctx2, cancel := context.WithCancel(ctx)
+	ctx2, cancel := context.WithCancel(context.Background())
 	for i := 1; i <= count; i++ {
 		go func() {
 			defer wg.Done()

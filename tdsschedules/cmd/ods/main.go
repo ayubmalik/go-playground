@@ -84,7 +84,7 @@ func findODPairs(ctx context.Context, client tdsschedules.TdsClient, candidates 
 func tryODPair(ctx context.Context, client tdsschedules.TdsClient, candidate ODPair, db *tdsschedules.OrigDestinationDB) {
 	// find a schedule starting on a monday
 	departDate := tdsschedules.NextMonday(time.Now())
-	slog.Info("trying OD pair", "departDate", departDate, "origin", candidate.Origin, "destination", candidate.Destination)
+	slog.Debug("trying non monday OD pair", "departDate", departDate, "origin", candidate.Origin.StationCode, "destination", candidate.Destination.StationCode)
 	if scheduleExists(ctx, client, departDate, candidate) {
 		slog.Info("found OD pair", "departDate", departDate, "origin", candidate.Origin, "destination", candidate.Destination)
 		od := createOD(candidate)
@@ -104,7 +104,7 @@ func tryODPair(ctx context.Context, client tdsschedules.TdsClient, candidate ODP
 	for i := 1; i <= count; i++ {
 		go func() {
 			defer wg.Done()
-			slog.Info("trying non monday OD pair", "departDate", departDate, "origin", candidate.Origin, "destination", candidate.Destination)
+			slog.Debug("trying non monday OD pair", "departDate", departDate, "origin", candidate.Origin.StationCode, "destination", candidate.Destination.StationCode)
 			if scheduleExists(ctx, client, departDate.Add(24*time.Duration(i)*time.Hour), candidate) {
 				slog.Info("found OD pair", "departDate", departDate, "origin", candidate.Origin, "destination", candidate.Destination)
 				od := createOD(candidate)

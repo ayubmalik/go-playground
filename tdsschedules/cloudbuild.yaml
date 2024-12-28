@@ -1,0 +1,13 @@
+steps:
+  - id: go_version
+    name: "gcr.io/cloud-builders/go"
+    args: [ "version" ]
+    env: [ "GOPATH=." ]
+  - id: go_linter
+    name: "golangci/golangci-lint"
+    args: [ "golangci-lint","run" ]
+  - id: go_test
+    name: "gcr.io/cloud-builders/go"
+    args: [ "test" ]
+    env: [ "GOPATH=." ]
+timeout: '600s'

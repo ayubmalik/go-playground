@@ -1,7 +1,10 @@
-build: test compile
+build: test lint compile
 
 test:
 	go test
+
+lint:
+	golangci-lint run
 
 compile:
 	go build -ldflags "-s -w" ./cmd/ods

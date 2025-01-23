@@ -23,10 +23,10 @@ func main() {
 		close(done)
 	})
 
-	ticker := time.Tick(3 * time.Second)
+	ticker := time.Tick(2 * time.Second)
 	go func() {
 		for next := range ticker {
-			slog.Info("Hello ", "time", next.Format(time.RFC3339))
+			slog.Info("Hello there ", "time", next.Format(time.RFC3339))
 		}
 	}()
 	<-done

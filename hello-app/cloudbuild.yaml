@@ -1,0 +1,7 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  script: |
+      docker build --tag gcr.io/tdsschedules/hello-app/hello-app:latest .
+  automapSubstitutions: true
+images:
+  - 'gcr.io/tdsschedules/hello-app/hello-app:latest'

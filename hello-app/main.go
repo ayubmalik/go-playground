@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	after := 60
+	after := 15
 	if run := os.Getenv("RUN_FOR"); run != "" {
 		i, err := strconv.Atoi(run)
 		if err != nil {

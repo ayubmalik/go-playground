@@ -32,7 +32,7 @@ func main() {
 	ticker := time.Tick(2 * time.Second)
 	go func() {
 		for next := range ticker {
-			slog.Info(fmt.Sprintf("Hola %s", msg), "time", next.Format(time.RFC3339))
+			slog.Info(fmt.Sprintf("HOLA %s", msg), "time", next.Format(time.RFC3339))
 		}
 	}()
 	<-done

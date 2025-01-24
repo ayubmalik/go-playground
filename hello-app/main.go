@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
@@ -23,10 +24,15 @@ func main() {
 		close(done)
 	})
 
+	msg := "world"
+	if m := os.Getenv("MSG"); m != "" {
+		msg = m
+	}
+
 	ticker := time.Tick(2 * time.Second)
 	go func() {
 		for next := range ticker {
-			slog.Info("Hello world ", "time", next.Format(time.RFC3339))
+			slog.Info(fmt.Sprintf("Hello %s", msg), "time", next.Format(time.RFC3339))
 		}
 	}()
 	<-done

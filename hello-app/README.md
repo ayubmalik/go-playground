@@ -38,5 +38,12 @@ gcloud projects add-iam-policy-binding tdsschedules --member='serviceAccount:clo
 gcloud projects add-iam-policy-binding tdsschedules --member='serviceAccount:cloud-build-go@tdsschedules.iam.gserviceaccount.com' --role='roles/artifactregistry.writer'
 gcloud projects add-iam-policy-binding tdsschedules --member='serviceAccount:cloud-build-go@tdsschedules.iam.gserviceaccount.com' --role='roles/storage.objectCreator'
 gcloud projects add-iam-policy-binding tdsschedules --member='serviceAccount:cloud-build-go@tdsschedules.iam.gserviceaccount.com' --role='roles/run.developer'
+```
+
+
+### Create Docker Repo
+
+```
+gcloud artifacts repositories create hello-app --repository-format=docker --location=us-central1 --description="Hello App Repo"
 
 ```

@@ -1,7 +1,13 @@
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  script: |
-      docker build --tag gcr.io/tdsschedules/hello-app/hello-app:latest .
-  automapSubstitutions: true
-images:
-  - 'gcr.io/tdsschedules/hello-app/hello-app:latest'
+  # Docker Build
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/myimage:$SHORT_SHA', '.']
+
+  # Docker push to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/myimage:$SHORT_SHA']
+
+  # Deploy to Cloud Run
+  #   args: ['run', 'deploy', 'helloworld-${SHORT_SHA}', 
+  #          '--image=us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/myimage:$SHORT_SHA', 
+  #          '--region', 'us-central1', '--platform', 'managed']

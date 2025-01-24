@@ -1,9 +1,9 @@
 FROM golang:1.23-alpine AS build
 
 #RUN useradd -u 1001 nonroot
-RUN addgroup -S hello-app && adduser -S hello-app -G hello-app
+#RUN addgroup -S hello-app && adduser -S hello-app -G hello-app
 
-USER hello-app
+#USER hello-app
 
 WORKDIR /app 
 
@@ -13,7 +13,7 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -ldflags="-s -w" -o hello-app ./
+RUN go build -ldflags="-s -w" -o /app/hello-app ./
 
 FROM alpine
 
@@ -24,7 +24,7 @@ COPY --from=build /app/hello-app /app/hello-app
 
 # Use the non-root user created in the build stage TODO
 #USER nonroot
-USER hello-app
+#USER hello-app
 
 CMD ["/app/hello-app"]
 

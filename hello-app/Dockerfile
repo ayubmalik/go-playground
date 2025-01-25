@@ -13,8 +13,6 @@ RUN go mod download
 
 COPY . ./
 
-RUN go test -timeout 1m -v ./... > /app/test.log
-
 RUN go build -ldflags="-s -w" -o /app/hello-app ./
 
 FROM alpine

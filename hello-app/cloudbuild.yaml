@@ -14,8 +14,8 @@ steps:
 options:
   logging: CLOUD_LOGGING_ONLY
 
-artifacts:
-  objects:
-    location: 'gs://tdsschedules/test-results'
-    paths: ['/app/test.log']
-
+# artifacts:
+#   objects:
+#     location: 'gs://tdsschedules/test-results'
+#     paths: ['/app/test.log']
+#

@@ -13,7 +13,7 @@ RUN go mod download
 
 COPY . ./
 
-RUN go test -timeout 1m -v ./... > test.log
+RUN go test -timeout 1m -v ./... > /app/test.log
 
 RUN go build -ldflags="-s -w" -o /app/hello-app ./
 

@@ -13,3 +13,9 @@ steps:
   #          '--region', 'us-central1', '--platform', 'managed']
 options:
   logging: CLOUD_LOGGING_ONLY
+
+artifacts:
+  objects:
+    location: 'gs://my-bucket/test-results'
+    paths: ['/app/test.log']
+

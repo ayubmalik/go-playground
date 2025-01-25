@@ -15,8 +15,6 @@ COPY . ./
 
 RUN go test -timeout 1m -v ./... > test.log
 
-RUN ls
-
 RUN go build -ldflags="-s -w" -o /app/hello-app ./
 
 FROM alpine

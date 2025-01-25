@@ -16,6 +16,6 @@ options:
 
 artifacts:
   objects:
-    location: 'gs://my-bucket/test-results'
+    location: 'gs://tdsschedules/test-results'
     paths: ['/app/test.log']
 

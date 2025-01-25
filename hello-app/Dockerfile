@@ -5,13 +5,17 @@ FROM golang:1.23-alpine AS build
 
 #USER hello-app
 
-WORKDIR /app 
+WORKDIR /app
 
 COPY go.mod ./
 
 RUN go mod download
 
 COPY . ./
+
+RUN go test -timeout 1m -v ./... > test.log
+
+RUN ls
 
 RUN go build -ldflags="-s -w" -o /app/hello-app ./
 

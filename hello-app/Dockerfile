@@ -23,6 +23,7 @@ WORKDIR /app
 
 COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /app/hello-app /app/hello-app
+COPY --from=build /app/test.log /app/test.log
 
 # Use the non-root user created in the build stage TODO
 #USER nonroot

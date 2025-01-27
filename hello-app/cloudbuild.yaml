@@ -8,7 +8,8 @@ options:
 steps:
   - id: go_version
     name: "gcr.io/cloud-builders/go:1.22"
-    args: [ "ls", "-a", "-l" ]
+    entrypoint: "ls"
+    args: [ "-a", "-l" ]
 
   - id: go_test
     name: "gcr.io/cloud-builders/go:1.22"

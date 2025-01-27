@@ -3,7 +3,7 @@ options:
   volumes:
     - name: go-modules
       path: /go
-  env: [ "GOPATH=hello-app" ]
+  env: [ "GO111MODULE=auto", "GOPATH=hello-app"]
 
 steps:
   - id: go_version
@@ -12,7 +12,7 @@ steps:
 
   - id: go_test
     name: "gcr.io/cloud-builders/go:1.22"
-    args: [ "test" , "-v", "-timeout", "1m" ]
+    args: [ "test" , "-v", "-timeout", "1m"]
 
   - id: go_build
     name: "gcr.io/cloud-builders/go:1.22"

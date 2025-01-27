@@ -1,21 +1,23 @@
 steps:
-  # Docker Build
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/hello-app:latest', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/hello-app:$SHORT_SHA', './hello-app/']
+  - id: go_version
+    name: "gcr.io/cloud-builders/go"
+    args: [ "version" ]
 
-  # Docker push to Google Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/hello-app:$SHORT_SHA']
+  - id: go_test
+    name: "gcr.io/cloud-builders/go"
+    args: [ "test", "./..." ]
 
-  # Deploy to Cloud Run
-  #   args: ['run', 'deploy', 'helloworld-${SHORT_SHA}', 
-  #          '--image=us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/hello-app:$SHORT_SHA', 
-  #          '--region', 'us-central1', '--platform', 'managed']
+  - id: go_build
+    name: "gcr.io/cloud-builders/go"
+    args: [ "build", "-ldflags", "-s -w" , "-o", "hello-app", "./" ]
+
+  - id: docker_build
+    name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/hello-app:latest', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/hello-app:$SHORT_SHA', './hello-app/' ]
+
+  - id: docker_push
+    name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', 'us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/hello-app:$SHORT_SHA' ]
+
 options:
   logging: CLOUD_LOGGING_ONLY
-
-# artifacts:
-#   objects:
-#     location: 'gs://tdsschedules/test-results'
-#     paths: ['/app/test.log']
-#

@@ -3,7 +3,7 @@ options:
   volumes:
     - name: go-modules
       path: /go
-  env: [ "GO111MODULE=auto", "GOPATH=/workspace/hello-app"]
+  env: [ "GO111MODULE=auto"]
 
 steps:
   - id: go_version
@@ -12,11 +12,11 @@ steps:
 
   - id: go_test
     name: "gcr.io/cloud-builders/go:1.22"
-    args: [ "test" , "-v", "-timeout", "1m"]
+    args: [ "test" , "-v", "-timeout", "1m", "./hello-app"]
 
   - id: go_build
     name: "gcr.io/cloud-builders/go:1.22"
-    args: [ "build", "-ldflags", "-s -w" , "-o", "hello-app", "./" ]
+    args: [ "build", "-ldflags", "-s -w" , "-o", "hello-app", "./hello-app" ]
 
   - id: docker_build
     name: 'gcr.io/cloud-builders/docker'

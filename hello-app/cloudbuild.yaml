@@ -13,7 +13,7 @@ steps:
       - -c
       - |
         go install github.com/jstemmer/go-junit-report/v2@latest
-        2>&1 go test -timeout 1m -v ./hello-app | /go/bin/go-junit-report -set-exit-code -iocopy -out hello-app_${SHORT_SHA}.junit.xml
+        2>&1 go test -timeout 1m -v ./hello-app | /go/bin/go-junit-report -set-exit-code -iocopy -out ./hello-app/${SHORT_SHA}.junit.xml
 
   - id: docker_build
     name: 'gcr.io/cloud-builders/docker'

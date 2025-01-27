@@ -7,11 +7,11 @@ options:
 
 steps:
   - id: go_version
-    name: "gcr.io/cloud-builders/go"
+    name: "go:latest"
     args: [ "version" ]
 
   - id: go_test
-    name: "gcr.io/cloud-builders/go"
+    name: "go:latest"
     args: [ "test", "./..." ]
 
   - id: go_build

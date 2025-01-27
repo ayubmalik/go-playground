@@ -3,7 +3,7 @@ options:
   volumes:
     - name: go-modules
       path: /go
-  env: ["GOPATH", "."]
+  env: ["GOPATH=."]
 
 steps:
   - id: go_version

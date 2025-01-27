@@ -12,7 +12,7 @@ steps:
 
   - id: go_test
     name: "gcr.io/cloud-builders/go:1.22"
-    args: [ "test" , "-v", "timeout", "1m" ]
+    args: [ "test" , "-v", "-timeout", "1m" ]
 
   - id: go_build
     name: "gcr.io/cloud-builders/go:1.22"

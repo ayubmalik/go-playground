@@ -23,7 +23,3 @@ steps:
   - id: docker_push
     name: 'gcr.io/cloud-builders/docker'
     args: [ 'push', 'us-central1-docker.pkg.dev/$PROJECT_ID/$_AR_REPO_NAME/hello-app:$SHORT_SHA' ]
-
-artifacts:
-  objects:
-    paths: [ '/hello-app/${SHORT_SHA}.junit.xml' ]

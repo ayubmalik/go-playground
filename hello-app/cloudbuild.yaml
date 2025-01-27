@@ -7,15 +7,15 @@ options:
 
 steps:
   - id: go_version
-    name: "go:latest"
+    name: "gcr.io/cloud-builders/go:1.22"
     args: [ "version" ]
 
   - id: go_test
-    name: "go:latest"
+    name: "gcr.io/cloud-builders/go:1.22"
     args: [ "test", "./..." ]
 
   - id: go_build
-    name: "gcr.io/cloud-builders/go"
+    name: "gcr.io/cloud-builders/go:1.22"
     args: [ "build", "-ldflags", "-s -w" , "-o", "hello-app", "./" ]
 
   - id: docker_build

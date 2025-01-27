@@ -3,7 +3,7 @@ options:
   volumes:
     - name: go-modules
       path: /go
-  env: [ "GOPATH=./tdsschedules" ]
+  env: [ "GOPATH=hello-app" ]
 
 steps:
   - id: go_version

@@ -3,7 +3,7 @@ options:
   volumes:
     - name: go-modules
       path: /go
-  env: [ "GO111MODULE=auto", "GOPATH=."]
+  env: [ "GO111MODULE=auto", "GOPATH=/go"]
 
 steps:
   - id: go_build

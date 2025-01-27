@@ -3,7 +3,7 @@ options:
   volumes:
     - name: go-modules
       path: /go
-  env: [ "GO111MODULE=auto", "GOPATH=hello-app"]
+  env: [ "GO111MODULE=auto", "GOPATH=/workspace/hello-app"]
 
 steps:
   - id: go_version

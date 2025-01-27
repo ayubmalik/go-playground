@@ -16,7 +16,7 @@ steps:
 
   - id: go_build
     name: "gcr.io/cloud-builders/go:1.22"
-    args: [ "build", "-ldflags", "-s -w" , "-o", "hello-app", "./hell" ]
+    args: [ "build", "-ldflags", "-s -w" , "-o", "hello-app", "./hello-app" ]
 
   - id: docker_build
     name: 'gcr.io/cloud-builders/docker'
